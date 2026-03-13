@@ -1,0 +1,11 @@
+import { Pool } from 'pg';
+import { env } from './env';
+
+export const pool = new Pool({
+  connectionString: env.databaseUrl,
+});
+
+pool.on('error', (err) => {
+  console.error('Unexpected PG pool error', err);
+  process.exit(1);
+});
