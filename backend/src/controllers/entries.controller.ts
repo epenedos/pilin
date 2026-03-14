@@ -3,6 +3,7 @@ import { AuthRequest } from '../types';
 import { entryRepo } from '../repositories/entry.repository';
 import { accountRepo } from '../repositories/account.repository';
 import { entriesService } from '../services/entries.service';
+import { xeService } from '../services/xe.service';
 import { NotFoundError } from '../utils/errors';
 
 export const entriesController = {
@@ -30,6 +31,9 @@ export const entriesController = {
         toAccountId: e.to_account_id || null,
         toAccountName: e.to_account_name || null,
         amount: parseFloat(e.amount),
+        currency: e.currency,
+        convertedAmount: e.converted_amount ? parseFloat(e.converted_amount) : null,
+        exchangeRate: e.exchange_rate ? parseFloat(e.exchange_rate) : null,
         description: e.description,
         entryDate: e.entry_date,
         isRecurring: e.is_recurring,
@@ -43,7 +47,7 @@ export const entriesController = {
   },
 
   async create(req: AuthRequest, res: Response) {
-    const { type, categoryId, accountId, toAccountId, amount, description, entryDate, isRecurring, recurrence, recurrenceStart, recurrenceEnd } = req.body;
+    const { type, categoryId, accountId, toAccountId, amount, currency, description, entryDate, isRecurring, recurrence, recurrenceStart, recurrenceEnd } = req.body;
 
     // Validate accounts belong to current user
     const account = await accountRepo.findById(accountId, req.userId!);
@@ -54,6 +58,19 @@ export const entriesController = {
       if (!toAccount) throw new NotFoundError('Destination account not found');
     }
 
+    // Use provided currency or default to account's currency
+    const entryCurrency = currency || account.currency || 'USD';
+
+    // Calculate conversion if entry currency differs from account currency
+    let convertedAmount: number | null = null;
+    let exchangeRate: number | null = null;
+
+    if (entryCurrency.toUpperCase() !== (account.currency || 'USD').toUpperCase()) {
+      const conversion = await xeService.convertAmount(amount, entryCurrency, account.currency || 'USD');
+      convertedAmount = conversion.convertedAmount;
+      exchangeRate = conversion.exchangeRate;
+    }
+
     const entry = await entryRepo.create({
       userId: req.userId!,
       categoryId: categoryId || null,
@@ -61,6 +78,9 @@ export const entriesController = {
       toAccountId: toAccountId || null,
       type,
       amount,
+      currency: entryCurrency.toUpperCase(),
+      convertedAmount,
+      exchangeRate,
       description,
       entryDate,
       isRecurring,
@@ -76,6 +96,9 @@ export const entriesController = {
       accountId: entry.account_id,
       toAccountId: entry.to_account_id,
       amount: parseFloat(entry.amount),
+      currency: entry.currency,
+      convertedAmount: entry.converted_amount ? parseFloat(entry.converted_amount) : null,
+      exchangeRate: entry.exchange_rate ? parseFloat(entry.exchange_rate) : null,
       description: entry.description,
       entryDate: entry.entry_date,
       isRecurring: entry.is_recurring,
@@ -84,7 +107,41 @@ export const entriesController = {
   },
 
   async update(req: AuthRequest, res: Response) {
-    const entry = await entryRepo.update(req.params.id, req.userId!, req.body);
+    const { accountId, amount, currency, ...otherData } = req.body;
+
+    // If amount or currency is being updated, we may need to recalculate conversion
+    let updateData: any = { ...otherData };
+
+    if (amount !== undefined || currency !== undefined || accountId !== undefined) {
+      // Get the existing entry to determine current values
+      const existingEntry = await entryRepo.findById(req.params.id, req.userId!);
+      if (!existingEntry) throw new NotFoundError('Entry not found');
+
+      // Get the target account (either new accountId or existing)
+      const targetAccountId = accountId || existingEntry.account_id;
+      const account = await accountRepo.findById(targetAccountId, req.userId!);
+      if (!account) throw new NotFoundError('Account not found');
+
+      // Determine the currency to use
+      const entryCurrency = currency || existingEntry.currency || account.currency || 'USD';
+      const entryAmount = amount !== undefined ? amount : parseFloat(existingEntry.amount);
+
+      updateData.accountId = accountId;
+      updateData.amount = amount;
+      updateData.currency = entryCurrency.toUpperCase();
+
+      // Calculate conversion if currencies differ
+      if (entryCurrency.toUpperCase() !== (account.currency || 'USD').toUpperCase()) {
+        const conversion = await xeService.convertAmount(entryAmount, entryCurrency, account.currency || 'USD');
+        updateData.convertedAmount = conversion.convertedAmount;
+        updateData.exchangeRate = conversion.exchangeRate;
+      } else {
+        updateData.convertedAmount = null;
+        updateData.exchangeRate = null;
+      }
+    }
+
+    const entry = await entryRepo.update(req.params.id, req.userId!, updateData);
     if (!entry) throw new NotFoundError('Entry not found');
     res.json({
       id: entry.id,
@@ -93,6 +150,9 @@ export const entriesController = {
       accountId: entry.account_id,
       toAccountId: entry.to_account_id,
       amount: parseFloat(entry.amount),
+      currency: entry.currency,
+      convertedAmount: entry.converted_amount ? parseFloat(entry.converted_amount) : null,
+      exchangeRate: entry.exchange_rate ? parseFloat(entry.exchange_rate) : null,
       description: entry.description,
       entryDate: entry.entry_date,
     });
@@ -115,6 +175,9 @@ export const entriesController = {
       accountId: e.account_id,
       accountName: e.account_name,
       amount: parseFloat(e.amount),
+      currency: e.currency,
+      convertedAmount: e.converted_amount ? parseFloat(e.converted_amount) : null,
+      exchangeRate: e.exchange_rate ? parseFloat(e.exchange_rate) : null,
       description: e.description,
       recurrence: e.recurrence,
       recurrenceStart: e.recurrence_start,
@@ -123,7 +186,38 @@ export const entriesController = {
   },
 
   async updateRecurring(req: AuthRequest, res: Response) {
-    const entry = await entryRepo.updateRecurring(req.params.id, req.userId!, req.body);
+    const { accountId, amount, currency, ...otherData } = req.body;
+
+    let updateData: any = { ...otherData };
+
+    if (amount !== undefined || currency !== undefined || accountId !== undefined) {
+      // Get existing entry
+      const existingEntry = await entryRepo.findById(req.params.id, req.userId!);
+      if (!existingEntry) throw new NotFoundError('Recurring entry not found');
+
+      // Get the target account
+      const targetAccountId = accountId || existingEntry.account_id;
+      const account = await accountRepo.findById(targetAccountId, req.userId!);
+      if (!account) throw new NotFoundError('Account not found');
+
+      const entryCurrency = currency || existingEntry.currency || account.currency || 'USD';
+      const entryAmount = amount !== undefined ? amount : parseFloat(existingEntry.amount);
+
+      updateData.accountId = accountId;
+      updateData.amount = amount;
+      updateData.currency = entryCurrency.toUpperCase();
+
+      if (entryCurrency.toUpperCase() !== (account.currency || 'USD').toUpperCase()) {
+        const conversion = await xeService.convertAmount(entryAmount, entryCurrency, account.currency || 'USD');
+        updateData.convertedAmount = conversion.convertedAmount;
+        updateData.exchangeRate = conversion.exchangeRate;
+      } else {
+        updateData.convertedAmount = null;
+        updateData.exchangeRate = null;
+      }
+    }
+
+    const entry = await entryRepo.updateRecurring(req.params.id, req.userId!, updateData);
     if (!entry) throw new NotFoundError('Recurring entry not found');
     res.json({
       id: entry.id,
@@ -131,6 +225,9 @@ export const entriesController = {
       categoryId: entry.category_id,
       accountId: entry.account_id,
       amount: parseFloat(entry.amount),
+      currency: entry.currency,
+      convertedAmount: entry.converted_amount ? parseFloat(entry.converted_amount) : null,
+      exchangeRate: entry.exchange_rate ? parseFloat(entry.exchange_rate) : null,
       description: entry.description,
       recurrence: entry.recurrence,
       recurrenceStart: entry.recurrence_start,

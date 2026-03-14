@@ -59,6 +59,9 @@ export const entryRepo = {
     toAccountId?: string | null;
     type: string;
     amount: number;
+    currency: string;
+    convertedAmount?: number | null;
+    exchangeRate?: number | null;
     description: string;
     entryDate: string;
     isRecurring: boolean;
@@ -69,14 +72,16 @@ export const entryRepo = {
   }) {
     const { rows } = await pool.query(
       `INSERT INTO money_entries
-       (user_id, category_id, account_id, to_account_id, type, amount, description, entry_date,
+       (user_id, category_id, account_id, to_account_id, type, amount, currency,
+        converted_amount, exchange_rate, description, entry_date,
         is_recurring, recurrence, recurrence_start, recurrence_end, parent_recurring_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
        RETURNING *`,
       [
         data.userId, data.categoryId || null, data.accountId, data.toAccountId || null,
-        data.type, data.amount, data.description,
-        data.entryDate, data.isRecurring, data.recurrence || null,
+        data.type, data.amount, data.currency,
+        data.convertedAmount ?? null, data.exchangeRate ?? null,
+        data.description, data.entryDate, data.isRecurring, data.recurrence || null,
         data.recurrenceStart || null, data.recurrenceEnd || null,
         data.parentRecurringId || null,
       ]
@@ -88,6 +93,9 @@ export const entryRepo = {
     categoryId?: string;
     accountId?: string;
     amount?: number;
+    currency?: string;
+    convertedAmount?: number | null;
+    exchangeRate?: number | null;
     description?: string;
     entryDate?: string;
   }) {
@@ -98,6 +106,9 @@ export const entryRepo = {
     if (data.categoryId !== undefined) { fields.push(`category_id = $${idx++}`); values.push(data.categoryId); }
     if (data.accountId !== undefined) { fields.push(`account_id = $${idx++}`); values.push(data.accountId); }
     if (data.amount !== undefined) { fields.push(`amount = $${idx++}`); values.push(data.amount); }
+    if (data.currency !== undefined) { fields.push(`currency = $${idx++}`); values.push(data.currency); }
+    if (data.convertedAmount !== undefined) { fields.push(`converted_amount = $${idx++}`); values.push(data.convertedAmount); }
+    if (data.exchangeRate !== undefined) { fields.push(`exchange_rate = $${idx++}`); values.push(data.exchangeRate); }
     if (data.description !== undefined) { fields.push(`description = $${idx++}`); values.push(data.description); }
     if (data.entryDate !== undefined) { fields.push(`entry_date = $${idx++}`); values.push(data.entryDate); }
 
@@ -155,6 +166,9 @@ export const entryRepo = {
     categoryId?: string;
     accountId?: string;
     amount?: number;
+    currency?: string;
+    convertedAmount?: number | null;
+    exchangeRate?: number | null;
     description?: string;
     recurrence?: string;
     recurrenceEnd?: string | null;
@@ -166,6 +180,9 @@ export const entryRepo = {
     if (data.categoryId !== undefined) { fields.push(`category_id = $${idx++}`); values.push(data.categoryId); }
     if (data.accountId !== undefined) { fields.push(`account_id = $${idx++}`); values.push(data.accountId); }
     if (data.amount !== undefined) { fields.push(`amount = $${idx++}`); values.push(data.amount); }
+    if (data.currency !== undefined) { fields.push(`currency = $${idx++}`); values.push(data.currency); }
+    if (data.convertedAmount !== undefined) { fields.push(`converted_amount = $${idx++}`); values.push(data.convertedAmount); }
+    if (data.exchangeRate !== undefined) { fields.push(`exchange_rate = $${idx++}`); values.push(data.exchangeRate); }
     if (data.description !== undefined) { fields.push(`description = $${idx++}`); values.push(data.description); }
     if (data.recurrence !== undefined) { fields.push(`recurrence = $${idx++}`); values.push(data.recurrence); }
     if (data.recurrenceEnd !== undefined) { fields.push(`recurrence_end = $${idx++}`); values.push(data.recurrenceEnd); }
@@ -281,6 +298,7 @@ export const entryRepo = {
     const { rows } = await pool.query(
       `SELECT me.id, me.description, me.amount, me.type, me.entry_date,
               me.account_id, me.to_account_id,
+              me.currency, me.converted_amount, a.currency as account_currency,
               c.name as category_name, c.color as category_color,
               a.name as account_name, ta.name as to_account_name
        FROM money_entries me

@@ -6,10 +6,7 @@ import { RecurringEntry, Category, Account } from '../types';
 import { EntryForm } from '../components/entries/EntryForm';
 import { Modal } from '../components/ui/Modal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
-
-function formatCurrency(n: number) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
-}
+import { formatCurrency } from '../utils/currency';
 
 export function RecurringPage() {
   const [entries, setEntries] = useState<RecurringEntry[]>([]);
@@ -108,7 +105,7 @@ export function RecurringPage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-red-600 font-medium">{formatCurrency(e.amount)}</span>
+                      <span className="text-red-600 font-medium">{formatCurrency(e.amount, e.currency)}</span>
                       <button onClick={() => setDeleteId(e.id)} className="text-gray-400 hover:text-red-600 text-sm">Delete</button>
                     </div>
                   </div>
@@ -137,7 +134,7 @@ export function RecurringPage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-green-600 font-medium">{formatCurrency(e.amount)}</span>
+                      <span className="text-green-600 font-medium">{formatCurrency(e.amount, e.currency)}</span>
                       <button onClick={() => setDeleteId(e.id)} className="text-gray-400 hover:text-red-600 text-sm">Delete</button>
                     </div>
                   </div>

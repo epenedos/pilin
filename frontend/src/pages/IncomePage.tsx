@@ -6,10 +6,7 @@ import { MoneyEntry, Category, Account } from '../types';
 import { EntryForm } from '../components/entries/EntryForm';
 import { Modal } from '../components/ui/Modal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
-
-function formatCurrency(n: number) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
-}
+import { formatCurrency } from '../utils/currency';
 
 function getMonthRange(dateStr: string) {
   const d = new Date(dateStr);
@@ -122,7 +119,18 @@ export function IncomePage() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-gray-500">{e.accountName}</td>
-                  <td className="px-4 py-3 text-right font-medium text-green-600">+{formatCurrency(e.amount)}</td>
+                  <td className="px-4 py-3 text-right font-medium text-green-600">
+                    {e.convertedAmount && e.currency !== e.accountCurrency ? (
+                      <span className="flex flex-col items-end">
+                        <span>+{formatCurrency(e.convertedAmount, e.accountCurrency)}</span>
+                        <span className="text-xs text-gray-400">
+                          {formatCurrency(e.amount, e.currency)}
+                        </span>
+                      </span>
+                    ) : (
+                      `+${formatCurrency(e.amount, e.currency)}`
+                    )}
+                  </td>
                   <td className="px-4 py-3">
                     <button
                       onClick={() => setDeleteId(e.id)}

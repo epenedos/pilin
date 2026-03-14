@@ -44,7 +44,19 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className="p-4 border-t border-gray-700">
+      <div className="p-4 border-t border-gray-700 space-y-1">
+        <NavLink
+          to="/profile"
+          className={({ isActive }) =>
+            `block text-sm transition-colors px-2 py-2 rounded ${
+              isActive
+                ? 'bg-indigo-600 text-white'
+                : 'text-gray-400 hover:text-white hover:bg-gray-800'
+            }`
+          }
+        >
+          Settings
+        </NavLink>
         <button
           onClick={logout}
           className="w-full text-left text-sm text-gray-400 hover:text-white transition-colors px-2 py-2"

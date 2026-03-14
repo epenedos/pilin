@@ -2,17 +2,17 @@ import { useState, useEffect } from 'react';
 import { accountsApi } from '../api/accounts.api';
 import { AccountWithBalance } from '../types';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
-
-function formatCurrency(n: number) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
-}
+import { CurrencySelector } from '../components/ui/CurrencySelector';
+import { formatCurrency } from '../utils/currency';
 
 export function AccountsPage() {
   const [accounts, setAccounts] = useState<AccountWithBalance[]>([]);
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState('');
+  const [newCurrency, setNewCurrency] = useState('USD');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
+  const [editCurrency, setEditCurrency] = useState('USD');
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const load = async () => {
@@ -26,14 +26,15 @@ export function AccountsPage() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName.trim()) return;
-    await accountsApi.create({ name: newName.trim() });
+    await accountsApi.create({ name: newName.trim(), currency: newCurrency });
     setNewName('');
+    setNewCurrency('USD');
     load();
   };
 
   const handleUpdate = async (id: string) => {
     if (!editName.trim()) return;
-    await accountsApi.update(id, { name: editName.trim() });
+    await accountsApi.update(id, { name: editName.trim(), currency: editCurrency });
     setEditingId(null);
     load();
   };
@@ -72,6 +73,11 @@ export function AccountsPage() {
           placeholder="New account name"
           className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
+        <CurrencySelector
+          value={newCurrency}
+          onChange={setNewCurrency}
+          className="w-48"
+        />
         <button
           type="submit"
           className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
@@ -84,24 +90,33 @@ export function AccountsPage() {
         {accounts.map((a) => (
           <div key={a.id} className="bg-white rounded-xl shadow p-6">
             {editingId === a.id ? (
-              <div className="flex gap-2 mb-3">
+              <div className="space-y-2 mb-3">
                 <input
                   type="text"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                  className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
                   autoFocus
                   onKeyDown={(e) => e.key === 'Enter' && handleUpdate(a.id)}
                 />
-                <button onClick={() => handleUpdate(a.id)} className="text-indigo-600 text-sm font-medium">Save</button>
-                <button onClick={() => setEditingId(null)} className="text-gray-400 text-sm">Cancel</button>
+                <CurrencySelector
+                  value={editCurrency}
+                  onChange={setEditCurrency}
+                />
+                <div className="flex gap-2">
+                  <button onClick={() => handleUpdate(a.id)} className="text-indigo-600 text-sm font-medium">Save</button>
+                  <button onClick={() => setEditingId(null)} className="text-gray-400 text-sm">Cancel</button>
+                </div>
               </div>
             ) : (
               <div className="flex justify-between items-start mb-2">
-                <p className="text-sm text-gray-500 font-medium">{a.name}</p>
+                <div>
+                  <p className="text-sm text-gray-500 font-medium">{a.name}</p>
+                  <p className="text-xs text-gray-400">{a.currency}</p>
+                </div>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => { setEditingId(a.id); setEditName(a.name); }}
+                    onClick={() => { setEditingId(a.id); setEditName(a.name); setEditCurrency(a.currency); }}
                     className="text-gray-400 hover:text-indigo-600 text-xs"
                   >
                     Edit
@@ -116,7 +131,7 @@ export function AccountsPage() {
               </div>
             )}
             <p className={`text-2xl font-bold ${a.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {formatCurrency(a.balance)}
+              {formatCurrency(a.balance, a.currency)}
             </p>
           </div>
         ))}

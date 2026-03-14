@@ -1,5 +1,6 @@
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { Category, EntryType, Account } from '../../types';
+import { CurrencySelector } from '../ui/CurrencySelector';
 
 interface Props {
   type: EntryType;
@@ -10,6 +11,7 @@ interface Props {
     accountId: string;
     toAccountId?: string | null;
     amount: number;
+    currency: string;
     description: string;
     entryDate: string;
     isRecurring: boolean;
@@ -33,6 +35,21 @@ export function EntryForm({ type, categories, accounts, onSubmit, onCancel }: Pr
   const [recurrenceEnd, setRecurrenceEnd] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  // Currency support
+  const selectedAccount = accounts.find(a => a.id === accountId);
+  const [currency, setCurrency] = useState(selectedAccount?.currency || 'USD');
+
+  // Update currency when account changes (default to account's currency)
+  useEffect(() => {
+    const account = accounts.find(a => a.id === accountId);
+    if (account) {
+      setCurrency(account.currency);
+    }
+  }, [accountId, accounts]);
+
+  // Check if currency conversion will happen
+  const needsConversion = selectedAccount && currency !== selectedAccount.currency;
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -42,6 +59,7 @@ export function EntryForm({ type, categories, accounts, onSubmit, onCancel }: Pr
         accountId,
         toAccountId: type === 'transfer' ? toAccountId : null,
         amount: parseFloat(amount),
+        currency,
         description,
         entryDate,
         isRecurring: type === 'transfer' ? false : isRecurring,
@@ -103,18 +121,30 @@ export function EntryForm({ type, categories, accounts, onSubmit, onCancel }: Pr
         </div>
       )}
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-        <input
-          type="number"
-          step="0.01"
-          min="0.01"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          required
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+          <input
+            type="number"
+            step="0.01"
+            min="0.01"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+        <CurrencySelector
+          value={currency}
+          onChange={setCurrency}
+          label="Currency"
         />
       </div>
+      {needsConversion && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700">
+          <span className="font-medium">Currency conversion:</span> This entry will be converted from {currency} to {selectedAccount?.currency} using the current exchange rate.
+        </div>
+      )}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
         <input

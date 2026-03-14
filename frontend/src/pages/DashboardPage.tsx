@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import { dashboardApi } from '../api/dashboard.api';
 import { DashboardSummary } from '../types';
-
-function formatCurrency(n: number) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
-}
+import { useAuth } from '../auth/AuthContext';
+import { formatCurrency } from '../utils/currency';
 
 export function DashboardPage() {
+  const { user } = useAuth();
   const [data, setData] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const defaultCurrency = user?.defaultCurrency || 'USD';
 
   useEffect(() => {
     dashboardApi.summary().then(setData).finally(() => setLoading(false));
@@ -26,21 +27,21 @@ export function DashboardPage() {
         <div className="bg-white rounded-xl shadow p-6">
           <p className="text-sm text-gray-500">Current Balance</p>
           <p className={`text-2xl font-bold mt-1 ${data.currentBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {formatCurrency(data.currentBalance)}
+            {formatCurrency(data.currentBalance, defaultCurrency)}
           </p>
         </div>
         <div className="bg-white rounded-xl shadow p-6">
           <p className="text-sm text-gray-500">Month Income</p>
-          <p className="text-2xl font-bold mt-1 text-green-600">{formatCurrency(data.monthIncome)}</p>
+          <p className="text-2xl font-bold mt-1 text-green-600">{formatCurrency(data.monthIncome, defaultCurrency)}</p>
         </div>
         <div className="bg-white rounded-xl shadow p-6">
           <p className="text-sm text-gray-500">Month Expenses</p>
-          <p className="text-2xl font-bold mt-1 text-red-600">{formatCurrency(data.monthExpenses)}</p>
+          <p className="text-2xl font-bold mt-1 text-red-600">{formatCurrency(data.monthExpenses, defaultCurrency)}</p>
         </div>
         <div className="bg-white rounded-xl shadow p-6">
           <p className="text-sm text-gray-500">Month Net</p>
           <p className={`text-2xl font-bold mt-1 ${data.monthNet >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {formatCurrency(data.monthNet)}
+            {formatCurrency(data.monthNet, defaultCurrency)}
           </p>
         </div>
       </div>
@@ -52,9 +53,12 @@ export function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {data.accountBalances.map((a) => (
               <div key={a.id} className="bg-white rounded-xl shadow p-5">
-                <p className="text-sm text-gray-500">{a.name}</p>
+                <div className="flex justify-between items-start">
+                  <p className="text-sm text-gray-500">{a.name}</p>
+                  <span className="text-xs text-gray-400">{a.currency}</span>
+                </div>
                 <p className={`text-xl font-bold mt-1 ${a.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {formatCurrency(a.balance)}
+                  {formatCurrency(a.balance, a.currency)}
                 </p>
               </div>
             ))}
@@ -78,7 +82,7 @@ export function DashboardPage() {
                       {b.name}
                     </span>
                     <span className={b.pct > 100 ? 'text-red-600 font-medium' : ''}>
-                      {formatCurrency(b.spent)} / {formatCurrency(b.budgeted)}
+                      {formatCurrency(b.spent, defaultCurrency)} / {formatCurrency(b.budgeted, defaultCurrency)}
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
@@ -110,7 +114,7 @@ export function DashboardPage() {
                     <p className="text-xs text-gray-400">{r.nextDate}</p>
                   </div>
                   <span className={`text-sm font-medium ${r.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                    {r.type === 'income' ? '+' : '-'}{formatCurrency(r.amount)}
+                    {r.type === 'income' ? '+' : '-'}{formatCurrency(r.amount, defaultCurrency)}
                   </span>
                 </div>
               ))}
@@ -157,7 +161,22 @@ export function DashboardPage() {
                     <td className={`py-2 text-right font-medium ${
                       e.type === 'income' ? 'text-green-600' : e.type === 'expense' ? 'text-red-600' : 'text-blue-600'
                     }`}>
-                      {e.type === 'income' ? '+' : e.type === 'expense' ? '-' : ''}{formatCurrency(e.amount)}
+                      {e.convertedAmount && e.currency !== e.accountCurrency ? (
+                        <span className="flex flex-col items-end">
+                          <span>
+                            {e.type === 'income' ? '+' : e.type === 'expense' ? '-' : ''}
+                            {formatCurrency(e.convertedAmount, e.accountCurrency)}
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            {formatCurrency(e.amount, e.currency)}
+                          </span>
+                        </span>
+                      ) : (
+                        <>
+                          {e.type === 'income' ? '+' : e.type === 'expense' ? '-' : ''}
+                          {formatCurrency(e.amount, e.currency)}
+                        </>
+                      )}
                     </td>
                   </tr>
                 ))}

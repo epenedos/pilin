@@ -82,6 +82,7 @@ export const dashboardService = {
         id: a.id,
         name: a.name,
         balance: parseFloat(a.balance),
+        currency: a.currency,
       })),
       budgetStatus,
       upcomingRecurring,
@@ -95,6 +96,9 @@ export const dashboardService = {
         categoryColor: e.category_color || null,
         accountName: e.account_name,
         toAccountName: e.to_account_name || null,
+        currency: e.currency,
+        convertedAmount: e.converted_amount ? parseFloat(e.converted_amount) : null,
+        accountCurrency: e.account_currency,
       })),
     };
   },
