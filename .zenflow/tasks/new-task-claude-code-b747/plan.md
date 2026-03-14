@@ -53,7 +53,8 @@ Save to `{@artifacts_path}/plan.md`. If the feature is trivial and doesn't warra
 
 ---
 
-### [ ] Step: Database Migration and Backend Types
+### [x] Step: Database Migration and Backend Types
+<!-- chat-id: 00712f49-198d-44d5-a2af-cd2e0671edb7 -->
 
 Add `initial_balance_entry_id` column to accounts table and update backend types.
 

@@ -35,6 +35,7 @@ export interface Account {
   user_id: string;
   name: string;
   currency: string;
+  initial_balance_entry_id: string | null;
   created_at: Date;
   updated_at: Date;
 }

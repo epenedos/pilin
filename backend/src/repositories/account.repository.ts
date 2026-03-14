@@ -3,7 +3,7 @@ import { pool } from '../config/database';
 export const accountRepo = {
   async findAllByUser(userId: string) {
     const { rows } = await pool.query(
-      'SELECT id, user_id, name, currency, created_at, updated_at FROM accounts WHERE user_id = $1 ORDER BY created_at',
+      'SELECT id, user_id, name, currency, initial_balance_entry_id, created_at, updated_at FROM accounts WHERE user_id = $1 ORDER BY created_at',
       [userId]
     );
     return rows;
@@ -11,7 +11,7 @@ export const accountRepo = {
 
   async findById(id: string, userId: string) {
     const { rows } = await pool.query(
-      'SELECT id, user_id, name, currency, created_at, updated_at FROM accounts WHERE id = $1 AND user_id = $2',
+      'SELECT id, user_id, name, currency, initial_balance_entry_id, created_at, updated_at FROM accounts WHERE id = $1 AND user_id = $2',
       [id, userId]
     );
     return rows[0] || null;
@@ -54,7 +54,7 @@ export const accountRepo = {
 
   async getBalances(userId: string) {
     const { rows } = await pool.query(
-      `SELECT a.id, a.name, a.currency, a.created_at, a.updated_at,
+      `SELECT a.id, a.name, a.currency, a.initial_balance_entry_id, a.created_at, a.updated_at,
               COALESCE(SUM(
                 CASE
                   WHEN me.type = 'income' AND me.account_id = a.id THEN COALESCE(me.converted_amount, me.amount)
@@ -70,7 +70,7 @@ export const accountRepo = {
          AND me.excluded = FALSE
          AND (me.parent_recurring_id IS NOT NULL OR me.is_recurring = FALSE)
        WHERE a.user_id = $1
-       GROUP BY a.id, a.name, a.currency, a.created_at, a.updated_at
+       GROUP BY a.id, a.name, a.currency, a.initial_balance_entry_id, a.created_at, a.updated_at
        ORDER BY a.created_at`,
       [userId]
     );
