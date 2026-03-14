@@ -1,0 +1,10 @@
+import { z } from 'zod';
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required'),
+  newPassword: z.string().min(8, 'New password must be at least 8 characters').max(128),
+});
+
+export const updateCurrencySchema = z.object({
+  currency: z.string().length(3, 'Currency must be a 3-letter code').toUpperCase(),
+});

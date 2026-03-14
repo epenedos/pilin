@@ -70,24 +70,25 @@ Add currency support to database schema and update TypeScript types.
 
 ---
 
-### [ ] Step: User Profile Backend (Password Change & Currency Settings)
+### [x] Step: User Profile Backend (Password Change & Currency Settings)
+<!-- chat-id: fd6bfab9-1e61-4669-862b-41be98a0b120 -->
 
 Implement backend API for user profile management.
 
-- [ ] Update `backend/src/repositories/user.repository.ts`:
+- [x] Update `backend/src/repositories/user.repository.ts`:
   - Add `findByIdWithPassword(id)` method
   - Add `updatePassword(userId, passwordHash)` method
   - Add `updateDefaultCurrency(userId, currency)` method
   - Update `findById` to include `default_currency`
-- [ ] Create `backend/src/schemas/user.schema.ts` with Zod schemas:
+- [x] Create `backend/src/schemas/user.schema.ts` with Zod schemas:
   - `changePasswordSchema` (currentPassword, newPassword with min 8 chars)
   - `updateCurrencySchema` (3-letter currency code validation)
-- [ ] Create `backend/src/controllers/user.controller.ts`:
+- [x] Create `backend/src/controllers/user.controller.ts`:
   - `getProfile` - GET /api/users/me
   - `changePassword` - PUT /api/users/me/password (verify current password first)
   - `updateCurrency` - PUT /api/users/me/currency
-- [ ] Create `backend/src/routes/user.routes.ts` and register in main router
-- [ ] Verify backend builds: `cd backend && npm run build`
+- [x] Create `backend/src/routes/user.routes.ts` and register in main router
+- [x] Verify backend builds: `cd backend && npm run build`
 
 ---
 
