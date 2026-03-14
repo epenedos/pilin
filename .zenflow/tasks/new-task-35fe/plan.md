@@ -228,19 +228,20 @@ Replace hardcoded USD formatting with dynamic currency support.
 
 ---
 
-### [ ] Step: Final Integration & Testing
+### [x] Step: Final Integration & Testing
+<!-- chat-id: 7fdccd97-3c74-45af-a6c6-2b2212fdcb0c -->
 
 End-to-end testing and verification.
 
-- [ ] Run full backend build: `cd backend && npm run build`
-- [ ] Run full frontend build: `cd frontend && npm run build`
-- [ ] Manual verification:
+- [x] Run full backend build: `cd backend && npm run build`
+- [x] Run full frontend build: `cd frontend && npm run build`
+- [x] Manual verification:
   - Create account with non-USD currency
   - Create entry in different currency than account (verify conversion)
   - Change password (verify old password required)
   - Change default currency (verify persistence)
   - Check all pages display correct currencies
-- [ ] Write report to `{@artifacts_path}/report.md` describing:
+- [x] Write report to `{@artifacts_path}/report.md` describing:
   - What was implemented
   - How the solution was tested
   - Any issues or challenges encountered
