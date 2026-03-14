@@ -211,19 +211,20 @@ Add currency selection to entry forms with conversion preview.
 
 ---
 
-### [ ] Step: Update All Pages with Currency Formatting
+### [x] Step: Update All Pages with Currency Formatting
+<!-- chat-id: a71c30fe-af16-461e-a154-7bca466121c9 -->
 
 Replace hardcoded USD formatting with dynamic currency support.
 
-- [ ] Update `frontend/src/pages/DashboardPage.tsx` to use formatCurrency utility
-- [ ] Update `frontend/src/pages/AccountsPage.tsx` to use account currency
-- [ ] Update `frontend/src/pages/ExpensesPage.tsx` to use entry currency
-- [ ] Update `frontend/src/pages/IncomePage.tsx` to use entry currency
-- [ ] Update `frontend/src/pages/TransfersPage.tsx` to use entry currency
-- [ ] Update `frontend/src/pages/RecurringPage.tsx` to use formatCurrency utility
-- [ ] Update `frontend/src/pages/BudgetsPage.tsx` to use formatCurrency utility
-- [ ] Update `frontend/src/pages/ForecastPage.tsx` to use formatCurrency utility
-- [ ] Verify frontend builds: `cd frontend && npm run build`
+- [x] Update `frontend/src/pages/DashboardPage.tsx` to use formatCurrency utility
+- [x] Update `frontend/src/pages/AccountsPage.tsx` to use account currency
+- [x] Update `frontend/src/pages/ExpensesPage.tsx` to use entry currency
+- [x] Update `frontend/src/pages/IncomePage.tsx` to use entry currency
+- [x] Update `frontend/src/pages/TransfersPage.tsx` to use entry currency
+- [x] Update `frontend/src/pages/RecurringPage.tsx` to use formatCurrency utility
+- [x] Update `frontend/src/pages/BudgetsPage.tsx` to use formatCurrency utility
+- [x] Update `frontend/src/pages/ForecastPage.tsx` to use formatCurrency utility
+- [x] Verify frontend builds: `cd frontend && npm run build`
 
 ---
 

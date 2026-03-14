@@ -298,6 +298,7 @@ export const entryRepo = {
     const { rows } = await pool.query(
       `SELECT me.id, me.description, me.amount, me.type, me.entry_date,
               me.account_id, me.to_account_id,
+              me.currency, me.converted_amount, a.currency as account_currency,
               c.name as category_name, c.color as category_color,
               a.name as account_name, ta.name as to_account_name
        FROM money_entries me

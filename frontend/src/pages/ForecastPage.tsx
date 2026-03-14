@@ -2,15 +2,16 @@ import { useState, useEffect } from 'react';
 import { forecastApi } from '../api/forecast.api';
 import { ForecastData } from '../types';
 import { ForecastChart } from '../components/charts/ForecastChart';
-
-function formatCurrency(n: number) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
-}
+import { useAuth } from '../auth/AuthContext';
+import { formatCurrency } from '../utils/currency';
 
 export function ForecastPage() {
+  const { user } = useAuth();
   const [months, setMonths] = useState(6);
   const [data, setData] = useState<ForecastData | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const defaultCurrency = user?.defaultCurrency || 'USD';
 
   useEffect(() => {
     setLoading(true);
@@ -52,13 +53,13 @@ export function ForecastPage() {
             <div className="flex gap-6 mb-4 text-sm">
               <div>
                 <span className="text-gray-500">Current balance: </span>
-                <span className="font-semibold">{formatCurrency(data.startBalance)}</span>
+                <span className="font-semibold">{formatCurrency(data.startBalance, defaultCurrency)}</span>
               </div>
               {data.points.length > 0 && (
                 <div>
                   <span className="text-gray-500">Projected ({months}mo): </span>
                   <span className={`font-semibold ${data.points[data.points.length - 1].projectedBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {formatCurrency(data.points[data.points.length - 1].projectedBalance)}
+                    {formatCurrency(data.points[data.points.length - 1].projectedBalance, defaultCurrency)}
                   </span>
                 </div>
               )}

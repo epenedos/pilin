@@ -4,12 +4,11 @@ import { categoriesApi } from '../api/categories.api';
 import { Budget, Category } from '../types';
 import { Modal } from '../components/ui/Modal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
-
-function formatCurrency(n: number) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
-}
+import { useAuth } from '../auth/AuthContext';
+import { formatCurrency } from '../utils/currency';
 
 export function BudgetsPage() {
+  const { user } = useAuth();
   const [month, setMonth] = useState(() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -22,6 +21,7 @@ export function BudgetsPage() {
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
+  const defaultCurrency = user?.defaultCurrency || 'USD';
   const monthDate = month + '-01';
 
   const load = useCallback(async () => {
@@ -149,9 +149,9 @@ export function BudgetsPage() {
                 </div>
                 <div className="flex justify-between text-sm mb-2">
                   <span className={over ? 'text-red-600 font-medium' : 'text-gray-600'}>
-                    {formatCurrency(b.spent)}
+                    {formatCurrency(b.spent, defaultCurrency)}
                   </span>
-                  <span className="text-gray-400">of {formatCurrency(b.amount)}</span>
+                  <span className="text-gray-400">of {formatCurrency(b.amount, defaultCurrency)}</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2.5">
                   <div
