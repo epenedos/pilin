@@ -5,6 +5,7 @@ import { accountsApi } from '../api/accounts.api';
 import { MoneyEntry, Category, Account } from '../types';
 import { EntryForm } from '../components/entries/EntryForm';
 import { Modal } from '../components/ui/Modal';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 
 function formatCurrency(n: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
@@ -29,6 +30,7 @@ export function IncomePage() {
   const [total, setTotal] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const { from, to } = getMonthRange(month + '-01');
@@ -52,8 +54,10 @@ export function IncomePage() {
     load();
   };
 
-  const handleDelete = async (id: string) => {
-    await entriesApi.remove(id);
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    await entriesApi.remove(deleteId);
+    setDeleteId(null);
     load();
   };
 
@@ -76,6 +80,14 @@ export function IncomePage() {
           </button>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={deleteId !== null}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteId(null)}
+        title="Delete Income"
+        message="Are you sure you want to delete this income entry? This action cannot be undone."
+      />
 
       <Modal open={showForm} onClose={() => setShowForm(false)} title="Add Income">
         <EntryForm type="income" categories={categories} accounts={accounts} onSubmit={handleCreate} onCancel={() => setShowForm(false)} />
@@ -113,7 +125,7 @@ export function IncomePage() {
                   <td className="px-4 py-3 text-right font-medium text-green-600">+{formatCurrency(e.amount)}</td>
                   <td className="px-4 py-3">
                     <button
-                      onClick={() => handleDelete(e.id)}
+                      onClick={() => setDeleteId(e.id)}
                       className="text-gray-400 hover:text-red-600 text-sm"
                     >
                       Delete

@@ -5,6 +5,7 @@ import { accountsApi } from '../api/accounts.api';
 import { RecurringEntry, Category, Account } from '../types';
 import { EntryForm } from '../components/entries/EntryForm';
 import { Modal } from '../components/ui/Modal';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 
 function formatCurrency(n: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
@@ -16,6 +17,7 @@ export function RecurringPage() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [showForm, setShowForm] = useState<'income' | 'expense' | null>(null);
   const [loading, setLoading] = useState(true);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const load = async () => {
     const [data, cats, accts] = await Promise.all([
@@ -37,8 +39,10 @@ export function RecurringPage() {
     load();
   };
 
-  const handleDelete = async (id: string) => {
-    await entriesApi.deleteRecurring(id, true);
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    await entriesApi.deleteRecurring(deleteId, true);
+    setDeleteId(null);
     load();
   };
 
@@ -64,6 +68,14 @@ export function RecurringPage() {
           </button>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={deleteId !== null}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteId(null)}
+        title="Delete Recurring Entry"
+        message="Are you sure you want to delete this recurring entry and all its generated transactions? This action cannot be undone."
+      />
 
       {showForm && (
         <Modal open={true} onClose={() => setShowForm(null)} title={`Add Recurring ${showForm === 'income' ? 'Income' : 'Expense'}`}>
@@ -97,7 +109,7 @@ export function RecurringPage() {
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="text-red-600 font-medium">{formatCurrency(e.amount)}</span>
-                      <button onClick={() => handleDelete(e.id)} className="text-gray-400 hover:text-red-600 text-sm">Delete</button>
+                      <button onClick={() => setDeleteId(e.id)} className="text-gray-400 hover:text-red-600 text-sm">Delete</button>
                     </div>
                   </div>
                 ))}
@@ -126,7 +138,7 @@ export function RecurringPage() {
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="text-green-600 font-medium">{formatCurrency(e.amount)}</span>
-                      <button onClick={() => handleDelete(e.id)} className="text-gray-400 hover:text-red-600 text-sm">Delete</button>
+                      <button onClick={() => setDeleteId(e.id)} className="text-gray-400 hover:text-red-600 text-sm">Delete</button>
                     </div>
                   </div>
                 ))}

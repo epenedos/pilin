@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { accountsApi } from '../api/accounts.api';
 import { AccountWithBalance } from '../types';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 
 function formatCurrency(n: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
@@ -12,6 +13,7 @@ export function AccountsPage() {
   const [newName, setNewName] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const load = async () => {
     const data = await accountsApi.balances();
@@ -36,11 +38,14 @@ export function AccountsPage() {
     load();
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async () => {
+    if (!deleteId) return;
     try {
-      await accountsApi.remove(id);
+      await accountsApi.remove(deleteId);
+      setDeleteId(null);
       load();
     } catch {
+      setDeleteId(null);
       alert('Cannot delete account with existing entries. Move or delete entries first.');
     }
   };
@@ -49,6 +54,14 @@ export function AccountsPage() {
 
   return (
     <div>
+      <ConfirmDialog
+        open={deleteId !== null}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteId(null)}
+        title="Delete Account"
+        message="Are you sure you want to delete this account? This action cannot be undone."
+      />
+
       <h2 className="text-2xl font-bold mb-6">Accounts</h2>
 
       <form onSubmit={handleCreate} className="flex gap-3 mb-6">
@@ -94,7 +107,7 @@ export function AccountsPage() {
                     Edit
                   </button>
                   <button
-                    onClick={() => handleDelete(a.id)}
+                    onClick={() => setDeleteId(a.id)}
                     className="text-gray-400 hover:text-red-600 text-xs"
                   >
                     Delete
