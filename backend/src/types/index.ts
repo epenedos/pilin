@@ -8,7 +8,12 @@ export interface User {
   id: string;
   email: string;
   display_name: string;
+  default_currency: string;
   created_at: Date;
+}
+
+export interface UserWithPassword extends User {
+  password_hash: string;
 }
 
 export interface Category {
@@ -29,6 +34,7 @@ export interface Account {
   id: string;
   user_id: string;
   name: string;
+  currency: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -41,6 +47,9 @@ export interface MoneyEntry {
   to_account_id: string | null;
   type: EntryType;
   amount: string; // NUMERIC comes as string from pg
+  currency: string;
+  converted_amount: string | null; // NUMERIC comes as string from pg
+  exchange_rate: string | null; // NUMERIC comes as string from pg
   description: string;
   entry_date: Date;
   is_recurring: boolean;

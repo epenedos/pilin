@@ -56,16 +56,17 @@ Save to `{@artifacts_path}/plan.md`. If the feature is trivial and doesn't warra
 
 ---
 
-### [ ] Step: Database Migrations & Backend Types
+### [x] Step: Database Migrations & Backend Types
+<!-- chat-id: 1817db64-512c-49ea-b6fc-8a5a47626851 -->
 
 Add currency support to database schema and update TypeScript types.
 
-- [ ] Create migration: Add `default_currency VARCHAR(3) DEFAULT 'USD'` to users table
-- [ ] Create migration: Add `currency VARCHAR(3) DEFAULT 'USD'` to accounts table
-- [ ] Create migration: Add `currency`, `converted_amount`, `exchange_rate` to money_entries table
-- [ ] Run migrations to verify they work
-- [ ] Update `backend/src/types/index.ts` with new fields for User, Account, MoneyEntry
-- [ ] Verify backend builds: `cd backend && npm run build`
+- [x] Create migration: Add `default_currency VARCHAR(3) DEFAULT 'USD'` to users table
+- [x] Create migration: Add `currency VARCHAR(3) DEFAULT 'USD'` to accounts table
+- [x] Create migration: Add `currency`, `converted_amount`, `exchange_rate` to money_entries table
+- [x] Run migrations to verify they work
+- [x] Update `backend/src/types/index.ts` with new fields for User, Account, MoneyEntry
+- [x] Verify backend builds: `cd backend && npm run build`
 
 ---
 
