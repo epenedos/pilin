@@ -194,19 +194,20 @@ Add currency selection to account create/edit forms.
 
 ---
 
-### [ ] Step: Entry Forms Currency Support (Frontend)
+### [x] Step: Entry Forms Currency Support (Frontend)
+<!-- chat-id: 9d993b8b-9780-44a2-b93b-7227dde32596 -->
 
 Add currency selection to entry forms with conversion preview.
 
-- [ ] Update expense/income/transfer entry forms to include CurrencySelector
-- [ ] Default entry currency to selected account's currency
-- [ ] Show conversion preview when entry currency differs from account currency
-- [ ] Update entry display to show original currency and converted amount
-- [ ] Files to update:
+- [x] Update expense/income/transfer entry forms to include CurrencySelector
+- [x] Default entry currency to selected account's currency
+- [x] Show conversion preview when entry currency differs from account currency
+- [x] Update entry display to show original currency and converted amount
+- [x] Files to update:
   - `frontend/src/pages/ExpensesPage.tsx`
   - `frontend/src/pages/IncomePage.tsx`
   - `frontend/src/pages/TransfersPage.tsx`
-- [ ] Verify frontend builds: `cd frontend && npm run build`
+- [x] Verify frontend builds: `cd frontend && npm run build`
 
 ---
 
