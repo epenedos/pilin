@@ -1,6 +1,8 @@
 import { entryRepo } from '../repositories/entry.repository';
+import { accountRepo } from '../repositories/account.repository';
 import { getOccurrences } from '../utils/recurrence';
 import { RecurrenceInterval } from '../types';
+import { xeService } from './xe.service';
 
 export const entriesService = {
   async generateRecurringEntries(userId: string, from: string, to: string) {
@@ -17,12 +19,37 @@ export const entriesService = {
       for (const date of dates) {
         const existing = await entryRepo.findGeneratedByParentAndDate(def.id, date);
         if (!existing) {
+          // Get the account to determine currency conversion
+          const account = await accountRepo.findById(def.account_id, userId);
+          const entryCurrency = def.currency || account?.currency || 'USD';
+          const accountCurrency = account?.currency || 'USD';
+          const entryAmount = parseFloat(def.amount);
+
+          let convertedAmount: number | null = null;
+          let exchangeRate: number | null = null;
+
+          // Re-convert on each generation (rates may change)
+          if (entryCurrency.toUpperCase() !== accountCurrency.toUpperCase()) {
+            try {
+              const conversion = await xeService.convertAmount(entryAmount, entryCurrency, accountCurrency);
+              convertedAmount = conversion.convertedAmount;
+              exchangeRate = conversion.exchangeRate;
+            } catch (error) {
+              // If conversion fails, use the parent's conversion values as fallback
+              convertedAmount = def.converted_amount ? parseFloat(def.converted_amount) : null;
+              exchangeRate = def.exchange_rate ? parseFloat(def.exchange_rate) : null;
+            }
+          }
+
           await entryRepo.create({
             userId,
             categoryId: def.category_id,
             accountId: def.account_id,
             type: def.type,
-            amount: parseFloat(def.amount),
+            amount: entryAmount,
+            currency: entryCurrency,
+            convertedAmount,
+            exchangeRate,
             description: def.description,
             entryDate: date,
             isRecurring: false,

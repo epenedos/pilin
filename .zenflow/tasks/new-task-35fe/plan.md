@@ -106,21 +106,22 @@ Update account creation/update to support currency.
 
 ---
 
-### [ ] Step: XE API Integration & Entry Currency Support (Backend)
+### [x] Step: XE API Integration & Entry Currency Support (Backend)
+<!-- chat-id: 5b92d343-66c1-4622-8f80-283a96f05010 -->
 
 Implement currency conversion service and update entries.
 
-- [ ] Create `backend/src/services/xe.service.ts`:
+- [x] Create `backend/src/services/xe.service.ts`:
   - Implement `getExchangeRate(from, to)` using XE API
   - Add in-memory caching (1 hour expiry)
   - Handle API errors gracefully
-- [ ] Update `backend/src/schemas/entry.schema.ts` to include currency field
-- [ ] Update `backend/src/repositories/entry.repository.ts`:
+- [x] Update `backend/src/schemas/entry.schema.ts` to include currency field
+- [x] Update `backend/src/repositories/entry.repository.ts`:
   - Include currency, converted_amount, exchange_rate in queries
-- [ ] Update entry creation logic to:
+- [x] Update entry creation logic to:
   - Call XE API when entry currency differs from account currency
   - Store converted_amount and exchange_rate
-- [ ] Verify backend builds: `cd backend && npm run build`
+- [x] Verify backend builds: `cd backend && npm run build`
 
 ---
 
