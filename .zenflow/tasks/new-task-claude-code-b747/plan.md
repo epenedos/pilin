@@ -106,7 +106,8 @@ Create the AccountDialog modal component for create/edit operations.
 
 ---
 
-### [ ] Step: Integrate AccountDialog into AccountsPage
+### [x] Step: Integrate AccountDialog into AccountsPage
+<!-- chat-id: 9476c644-86bb-4f4f-8442-abb9e505f0b0 -->
 
 Replace inline forms with dialog-based create/edit flow.
 
