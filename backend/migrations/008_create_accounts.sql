@@ -10,9 +10,6 @@ CREATE TABLE accounts (
 
 CREATE INDEX idx_accounts_user ON accounts (user_id);
 
--- Add 'transfer' to entry_type enum
-ALTER TYPE entry_type ADD VALUE IF NOT EXISTS 'transfer';
-
 -- Add account columns to money_entries
 ALTER TABLE money_entries ADD COLUMN account_id UUID REFERENCES accounts(id) ON DELETE RESTRICT;
 ALTER TABLE money_entries ADD COLUMN to_account_id UUID REFERENCES accounts(id) ON DELETE RESTRICT;
