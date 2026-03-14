@@ -2,6 +2,13 @@ import api from './client';
 import { MoneyEntry, RecurringEntry } from '../types';
 
 export const entriesApi = {
+  async getById(id: string): Promise<MoneyEntry | null> {
+    // Fetch entries and find by ID - workaround until GET /entries/:id is added
+    const { data } = await api.get('/entries', { params: { limit: 1000 } });
+    const entry = data.data.find((e: MoneyEntry) => e.id === id);
+    return entry || null;
+  },
+
   async list(params: {
     type?: string;
     from?: string;

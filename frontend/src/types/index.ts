@@ -18,6 +18,7 @@ export interface Account {
   id: string;
   name: string;
   currency: string;
+  initialBalanceEntryId?: string | null;
   createdAt: string;
   updatedAt: string;
 }
