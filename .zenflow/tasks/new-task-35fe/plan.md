@@ -18,7 +18,7 @@ Do not make assumptions on important decisions — get clarification first.
 
 ## Workflow Steps
 
-### [ ] Step: Technical Specification
+### [x] Step: Technical Specification
 
 Assess the task's difficulty, as underestimating it leads to poor outcomes.
 - easy: Straightforward implementation, trivial bug fix or feature
@@ -50,18 +50,185 @@ Important: unit tests must be part of each implementation task, not separate tas
 
 Save to `{@artifacts_path}/plan.md`. If the feature is trivial and doesn't warrant this breakdown, keep the Implementation step below as is.
 
+**Complexity**: Hard - Multiple database migrations, XE API integration, changes across 8+ pages, architectural changes for multi-currency support.
+
+**Output**: See `spec.md` for full technical specification.
+
 ---
 
-### [ ] Step: Implementation
+### [ ] Step: Database Migrations & Backend Types
 
-Implement the task according to the technical specification and general engineering best practices.
+Add currency support to database schema and update TypeScript types.
 
-1. Break the task into steps where possible.
-2. Implement the required changes in the codebase
-3. If relevant, write unit tests alongside each change.
-4. Run relevant tests and linters in the end of each step.
-5. Perform basic manual verification if applicable.
-6. After completion, write a report to `{@artifacts_path}/report.md` describing:
-   - What was implemented
-   - How the solution was tested
-   - The biggest issues or challenges encountered
+- [ ] Create migration: Add `default_currency VARCHAR(3) DEFAULT 'USD'` to users table
+- [ ] Create migration: Add `currency VARCHAR(3) DEFAULT 'USD'` to accounts table
+- [ ] Create migration: Add `currency`, `converted_amount`, `exchange_rate` to money_entries table
+- [ ] Run migrations to verify they work
+- [ ] Update `backend/src/types/index.ts` with new fields for User, Account, MoneyEntry
+- [ ] Verify backend builds: `cd backend && npm run build`
+
+---
+
+### [ ] Step: User Profile Backend (Password Change & Currency Settings)
+
+Implement backend API for user profile management.
+
+- [ ] Update `backend/src/repositories/user.repository.ts`:
+  - Add `findByIdWithPassword(id)` method
+  - Add `updatePassword(userId, passwordHash)` method
+  - Add `updateDefaultCurrency(userId, currency)` method
+  - Update `findById` to include `default_currency`
+- [ ] Create `backend/src/schemas/user.schema.ts` with Zod schemas:
+  - `changePasswordSchema` (currentPassword, newPassword with min 8 chars)
+  - `updateCurrencySchema` (3-letter currency code validation)
+- [ ] Create `backend/src/controllers/user.controller.ts`:
+  - `getProfile` - GET /api/users/me
+  - `changePassword` - PUT /api/users/me/password (verify current password first)
+  - `updateCurrency` - PUT /api/users/me/currency
+- [ ] Create `backend/src/routes/user.routes.ts` and register in main router
+- [ ] Verify backend builds: `cd backend && npm run build`
+
+---
+
+### [ ] Step: Account Currency Support (Backend)
+
+Update account creation/update to support currency.
+
+- [ ] Update `backend/src/schemas/account.schema.ts` to include currency field
+- [ ] Update `backend/src/repositories/account.repository.ts`:
+  - Include currency in create/update queries
+  - Include currency in all SELECT queries
+- [ ] Update `backend/src/controllers/accounts.controller.ts` to handle currency
+- [ ] Verify backend builds: `cd backend && npm run build`
+
+---
+
+### [ ] Step: XE API Integration & Entry Currency Support (Backend)
+
+Implement currency conversion service and update entries.
+
+- [ ] Create `backend/src/services/xe.service.ts`:
+  - Implement `getExchangeRate(from, to)` using XE API
+  - Add in-memory caching (1 hour expiry)
+  - Handle API errors gracefully
+- [ ] Update `backend/src/schemas/entry.schema.ts` to include currency field
+- [ ] Update `backend/src/repositories/entry.repository.ts`:
+  - Include currency, converted_amount, exchange_rate in queries
+- [ ] Update entry creation logic to:
+  - Call XE API when entry currency differs from account currency
+  - Store converted_amount and exchange_rate
+- [ ] Verify backend builds: `cd backend && npm run build`
+
+---
+
+### [ ] Step: Frontend Types & Currency Utility
+
+Update frontend types and create currency formatting utility.
+
+- [ ] Update `frontend/src/types/index.ts`:
+  - Add `defaultCurrency` to User interface
+  - Add `currency` to Account interface
+  - Add `currency`, `convertedAmount`, `exchangeRate` to MoneyEntry interface
+- [ ] Create `frontend/src/utils/currency.ts`:
+  - Export `SUPPORTED_CURRENCIES` array
+  - Export `formatCurrency(amount, currency)` function
+  - Export `getCurrencyOptions()` for select dropdowns
+- [ ] Verify frontend builds: `cd frontend && npm run build`
+
+---
+
+### [ ] Step: User API Client & Auth Context Update
+
+Create user API client and update auth context for profile data.
+
+- [ ] Create `frontend/src/api/user.api.ts`:
+  - `getProfile()` - GET /api/users/me
+  - `changePassword(currentPassword, newPassword)` - PUT /api/users/me/password
+  - `updateCurrency(currency)` - PUT /api/users/me/currency
+- [ ] Update `frontend/src/auth/AuthContext.tsx`:
+  - Fetch full user profile on mount (not just decode JWT)
+  - Add `refreshUser()` method to re-fetch profile after changes
+  - Include `defaultCurrency` in context
+- [ ] Verify frontend builds: `cd frontend && npm run build`
+
+---
+
+### [ ] Step: Profile Page & Currency Selector Component
+
+Create profile page with password change and currency settings.
+
+- [ ] Create `frontend/src/components/ui/CurrencySelector.tsx`:
+  - Reusable dropdown for currency selection
+  - Use SUPPORTED_CURRENCIES from utility
+- [ ] Create `frontend/src/pages/ProfilePage.tsx`:
+  - Account Information section (email, display name - read only)
+  - Password Change section (current password, new password, confirm)
+  - Currency Settings section (default currency dropdown)
+  - Follow existing page patterns (layout, styling)
+- [ ] Add route in `frontend/src/App.tsx`: `/profile` → ProfilePage (protected)
+- [ ] Add "Profile" or "Settings" link in `frontend/src/components/layout/Sidebar.tsx`
+- [ ] Verify frontend builds: `cd frontend && npm run build`
+
+---
+
+### [ ] Step: Account Forms Currency Support (Frontend)
+
+Add currency selection to account create/edit forms.
+
+- [ ] Update `frontend/src/pages/AccountsPage.tsx`:
+  - Add CurrencySelector to create account modal
+  - Add CurrencySelector to edit account modal
+  - Display account currency in the accounts list
+- [ ] Update `frontend/src/api/accounts.api.ts` if needed for currency field
+- [ ] Verify frontend builds: `cd frontend && npm run build`
+
+---
+
+### [ ] Step: Entry Forms Currency Support (Frontend)
+
+Add currency selection to entry forms with conversion preview.
+
+- [ ] Update expense/income/transfer entry forms to include CurrencySelector
+- [ ] Default entry currency to selected account's currency
+- [ ] Show conversion preview when entry currency differs from account currency
+- [ ] Update entry display to show original currency and converted amount
+- [ ] Files to update:
+  - `frontend/src/pages/ExpensesPage.tsx`
+  - `frontend/src/pages/IncomePage.tsx`
+  - `frontend/src/pages/TransfersPage.tsx`
+- [ ] Verify frontend builds: `cd frontend && npm run build`
+
+---
+
+### [ ] Step: Update All Pages with Currency Formatting
+
+Replace hardcoded USD formatting with dynamic currency support.
+
+- [ ] Update `frontend/src/pages/DashboardPage.tsx` to use formatCurrency utility
+- [ ] Update `frontend/src/pages/AccountsPage.tsx` to use account currency
+- [ ] Update `frontend/src/pages/ExpensesPage.tsx` to use entry currency
+- [ ] Update `frontend/src/pages/IncomePage.tsx` to use entry currency
+- [ ] Update `frontend/src/pages/TransfersPage.tsx` to use entry currency
+- [ ] Update `frontend/src/pages/RecurringPage.tsx` to use formatCurrency utility
+- [ ] Update `frontend/src/pages/BudgetsPage.tsx` to use formatCurrency utility
+- [ ] Update `frontend/src/pages/ForecastPage.tsx` to use formatCurrency utility
+- [ ] Verify frontend builds: `cd frontend && npm run build`
+
+---
+
+### [ ] Step: Final Integration & Testing
+
+End-to-end testing and verification.
+
+- [ ] Run full backend build: `cd backend && npm run build`
+- [ ] Run full frontend build: `cd frontend && npm run build`
+- [ ] Manual verification:
+  - Create account with non-USD currency
+  - Create entry in different currency than account (verify conversion)
+  - Change password (verify old password required)
+  - Change default currency (verify persistence)
+  - Check all pages display correct currencies
+- [ ] Write report to `{@artifacts_path}/report.md` describing:
+  - What was implemented
+  - How the solution was tested
+  - Any issues or challenges encountered
