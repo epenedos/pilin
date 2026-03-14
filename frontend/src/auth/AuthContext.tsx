@@ -23,7 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setAccessToken(accessToken);
         // Decode user from token
         const payload = JSON.parse(atob(accessToken.split('.')[1]));
-        setUser({ id: payload.sub, email: payload.email, displayName: '' });
+        setUser({ id: payload.sub, email: payload.email, displayName: '', defaultCurrency: 'USD' });
       })
       .catch(() => {
         setAccessToken(null);

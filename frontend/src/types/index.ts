@@ -2,6 +2,7 @@ export interface User {
   id: string;
   email: string;
   displayName: string;
+  defaultCurrency: string;
 }
 
 export interface Category {
@@ -16,6 +17,7 @@ export interface Category {
 export interface Account {
   id: string;
   name: string;
+  currency: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -35,9 +37,14 @@ export interface MoneyEntry {
   categoryColor: string | null;
   accountId: string;
   accountName: string;
+  accountCurrency: string;
   toAccountId: string | null;
   toAccountName: string | null;
+  toAccountCurrency: string | null;
   amount: number;
+  currency: string;
+  convertedAmount: number | null;
+  exchangeRate: number | null;
   description: string;
   entryDate: string;
   isRecurring: boolean;

@@ -125,19 +125,22 @@ Implement currency conversion service and update entries.
 
 ---
 
-### [ ] Step: Frontend Types & Currency Utility
+### [x] Step: Frontend Types & Currency Utility
+<!-- chat-id: d8e41adf-a40f-4260-9ecb-e82c69ed6e64 -->
 
 Update frontend types and create currency formatting utility.
 
-- [ ] Update `frontend/src/types/index.ts`:
+- [x] Update `frontend/src/types/index.ts`:
   - Add `defaultCurrency` to User interface
   - Add `currency` to Account interface
   - Add `currency`, `convertedAmount`, `exchangeRate` to MoneyEntry interface
-- [ ] Create `frontend/src/utils/currency.ts`:
-  - Export `SUPPORTED_CURRENCIES` array
-  - Export `formatCurrency(amount, currency)` function
+  - Add `accountCurrency` and `toAccountCurrency` to MoneyEntry for display
+- [x] Create `frontend/src/utils/currency.ts`:
+  - Export `SUPPORTED_CURRENCIES` array (35 currencies)
+  - Export `formatCurrency(amount, currency)` function with Intl.NumberFormat
   - Export `getCurrencyOptions()` for select dropdowns
-- [ ] Verify frontend builds: `cd frontend && npm run build`
+  - Export `getCurrencyInfo()`, `getCurrencySymbol()`, `isSupportedCurrency()` helpers
+- [x] Verify frontend builds: `cd frontend && npm run build`
 
 ---
 
