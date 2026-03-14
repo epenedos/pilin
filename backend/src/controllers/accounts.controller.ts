@@ -9,6 +9,7 @@ export const accountsController = {
     res.json(accounts.map((a: any) => ({
       id: a.id,
       name: a.name,
+      currency: a.currency,
       createdAt: a.created_at,
       updatedAt: a.updated_at,
     })));
@@ -19,6 +20,7 @@ export const accountsController = {
     res.json(accounts.map((a: any) => ({
       id: a.id,
       name: a.name,
+      currency: a.currency,
       balance: parseFloat(a.balance),
       createdAt: a.created_at,
       updatedAt: a.updated_at,
@@ -26,21 +28,25 @@ export const accountsController = {
   },
 
   async create(req: AuthRequest, res: Response) {
-    const account = await accountRepo.create(req.userId!, req.body.name);
+    const { name, currency } = req.body;
+    const account = await accountRepo.create(req.userId!, name, currency);
     res.status(201).json({
       id: account.id,
       name: account.name,
+      currency: account.currency,
       createdAt: account.created_at,
       updatedAt: account.updated_at,
     });
   },
 
   async update(req: AuthRequest, res: Response) {
-    const account = await accountRepo.update(req.params.id, req.userId!, req.body.name);
+    const { name, currency } = req.body;
+    const account = await accountRepo.update(req.params.id, req.userId!, { name, currency });
     if (!account) throw new NotFoundError('Account not found');
     res.json({
       id: account.id,
       name: account.name,
+      currency: account.currency,
       createdAt: account.created_at,
       updatedAt: account.updated_at,
     });

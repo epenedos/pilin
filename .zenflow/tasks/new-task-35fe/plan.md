@@ -92,16 +92,17 @@ Implement backend API for user profile management.
 
 ---
 
-### [ ] Step: Account Currency Support (Backend)
+### [x] Step: Account Currency Support (Backend)
+<!-- chat-id: 50e0a524-e27f-4581-96ad-29d11699f225 -->
 
 Update account creation/update to support currency.
 
-- [ ] Update `backend/src/schemas/account.schema.ts` to include currency field
-- [ ] Update `backend/src/repositories/account.repository.ts`:
+- [x] Update `backend/src/schemas/account.schema.ts` to include currency field
+- [x] Update `backend/src/repositories/account.repository.ts`:
   - Include currency in create/update queries
   - Include currency in all SELECT queries
-- [ ] Update `backend/src/controllers/accounts.controller.ts` to handle currency
-- [ ] Verify backend builds: `cd backend && npm run build`
+- [x] Update `backend/src/controllers/accounts.controller.ts` to handle currency
+- [x] Verify backend builds: `cd backend && npm run build`
 
 ---
 
