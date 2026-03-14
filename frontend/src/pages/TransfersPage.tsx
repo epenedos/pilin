@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { entriesApi } from '../api/entries.api';
-import { categoriesApi } from '../api/categories.api';
 import { accountsApi } from '../api/accounts.api';
-import { MoneyEntry, Category, Account } from '../types';
+import { MoneyEntry, Account } from '../types';
 import { EntryForm } from '../components/entries/EntryForm';
 import { Modal } from '../components/ui/Modal';
 
@@ -18,13 +17,12 @@ function getMonthRange(dateStr: string) {
   return { from, to };
 }
 
-export function ExpensesPage() {
+export function TransfersPage() {
   const [month, setMonth] = useState(() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
   });
   const [entries, setEntries] = useState<MoneyEntry[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [total, setTotal] = useState(0);
   const [showForm, setShowForm] = useState(false);
@@ -32,14 +30,12 @@ export function ExpensesPage() {
 
   const load = useCallback(async () => {
     const { from, to } = getMonthRange(month + '-01');
-    const [result, cats, accts] = await Promise.all([
-      entriesApi.list({ type: 'expense', from, to, limit: 100 }),
-      categoriesApi.list(),
+    const [result, accts] = await Promise.all([
+      entriesApi.list({ type: 'transfer', from, to, limit: 100 }),
       accountsApi.list(),
     ]);
     setEntries(result.data);
     setTotal(result.total);
-    setCategories(cats);
     setAccounts(accts);
     setLoading(false);
   }, [month]);
@@ -47,7 +43,7 @@ export function ExpensesPage() {
   useEffect(() => { load(); }, [load]);
 
   const handleCreate = async (data: any) => {
-    await entriesApi.create({ ...data, type: 'expense' });
+    await entriesApi.create({ ...data, type: 'transfer' });
     setShowForm(false);
     load();
   };
@@ -60,7 +56,7 @@ export function ExpensesPage() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Expenses</h2>
+        <h2 className="text-2xl font-bold">Transfers</h2>
         <div className="flex gap-3 items-center">
           <input
             type="month"
@@ -70,21 +66,28 @@ export function ExpensesPage() {
           />
           <button
             onClick={() => setShowForm(true)}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
+            disabled={accounts.length < 2}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            + Add Expense
+            + Add Transfer
           </button>
         </div>
       </div>
 
-      <Modal open={showForm} onClose={() => setShowForm(false)} title="Add Expense">
-        <EntryForm type="expense" categories={categories} accounts={accounts} onSubmit={handleCreate} onCancel={() => setShowForm(false)} />
+      {accounts.length < 2 && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 text-sm text-yellow-700">
+          You need at least 2 accounts to create transfers. Go to the Accounts page to add more.
+        </div>
+      )}
+
+      <Modal open={showForm} onClose={() => setShowForm(false)} title="Add Transfer">
+        <EntryForm type="transfer" categories={[]} accounts={accounts} onSubmit={handleCreate} onCancel={() => setShowForm(false)} />
       </Modal>
 
       {loading ? (
         <div className="animate-pulse">Loading...</div>
       ) : entries.length === 0 ? (
-        <div className="text-center text-gray-400 py-12">No expenses for this month</div>
+        <div className="text-center text-gray-400 py-12">No transfers for this month</div>
       ) : (
         <div className="bg-white rounded-xl shadow overflow-hidden">
           <table className="w-full text-sm">
@@ -92,8 +95,8 @@ export function ExpensesPage() {
               <tr className="text-left text-gray-500">
                 <th className="px-4 py-3">Date</th>
                 <th className="px-4 py-3">Description</th>
-                <th className="px-4 py-3">Category</th>
-                <th className="px-4 py-3">Account</th>
+                <th className="px-4 py-3">From</th>
+                <th className="px-4 py-3">To</th>
                 <th className="px-4 py-3 text-right">Amount</th>
                 <th className="px-4 py-3 w-16"></th>
               </tr>
@@ -103,14 +106,9 @@ export function ExpensesPage() {
                 <tr key={e.id} className="border-t border-gray-100 hover:bg-gray-50">
                   <td className="px-4 py-3 text-gray-500">{e.entryDate}</td>
                   <td className="px-4 py-3">{e.description}</td>
-                  <td className="px-4 py-3">
-                    <span className="flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: e.categoryColor || '#ccc' }} />
-                      {e.categoryName}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-500">{e.accountName}</td>
-                  <td className="px-4 py-3 text-right font-medium text-red-600">{formatCurrency(e.amount)}</td>
+                  <td className="px-4 py-3">{e.accountName}</td>
+                  <td className="px-4 py-3">{e.toAccountName}</td>
+                  <td className="px-4 py-3 text-right font-medium text-blue-600">{formatCurrency(e.amount)}</td>
                   <td className="px-4 py-3">
                     <button
                       onClick={() => handleDelete(e.id)}
@@ -124,7 +122,7 @@ export function ExpensesPage() {
             </tbody>
           </table>
           <div className="px-4 py-3 bg-gray-50 text-sm text-gray-500">
-            {total} entries total
+            {total} transfers total
           </div>
         </div>
       )}

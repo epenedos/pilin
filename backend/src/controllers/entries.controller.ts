@@ -1,17 +1,19 @@
 import { Response } from 'express';
 import { AuthRequest } from '../types';
 import { entryRepo } from '../repositories/entry.repository';
+import { accountRepo } from '../repositories/account.repository';
 import { entriesService } from '../services/entries.service';
 import { NotFoundError } from '../utils/errors';
 
 export const entriesController = {
   async list(req: AuthRequest, res: Response) {
-    const { type, from, to, categoryId, page = '1', limit = '50' } = req.query;
+    const { type, from, to, categoryId, accountId, page = '1', limit = '50' } = req.query;
     const result = await entriesService.getEntries(req.userId!, {
       type: type as string | undefined,
       from: from as string | undefined,
       to: to as string | undefined,
       categoryId: categoryId as string | undefined,
+      accountId: accountId as string | undefined,
       page: parseInt(page as string, 10),
       limit: Math.min(parseInt(limit as string, 10), 100),
     });
@@ -21,8 +23,12 @@ export const entriesController = {
         id: e.id,
         type: e.type,
         categoryId: e.category_id,
-        categoryName: e.category_name,
-        categoryColor: e.category_color,
+        categoryName: e.category_name || null,
+        categoryColor: e.category_color || null,
+        accountId: e.account_id,
+        accountName: e.account_name,
+        toAccountId: e.to_account_id || null,
+        toAccountName: e.to_account_name || null,
         amount: parseFloat(e.amount),
         description: e.description,
         entryDate: e.entry_date,
@@ -37,10 +43,22 @@ export const entriesController = {
   },
 
   async create(req: AuthRequest, res: Response) {
-    const { type, categoryId, amount, description, entryDate, isRecurring, recurrence, recurrenceStart, recurrenceEnd } = req.body;
+    const { type, categoryId, accountId, toAccountId, amount, description, entryDate, isRecurring, recurrence, recurrenceStart, recurrenceEnd } = req.body;
+
+    // Validate accounts belong to current user
+    const account = await accountRepo.findById(accountId, req.userId!);
+    if (!account) throw new NotFoundError('Account not found');
+
+    if (type === 'transfer') {
+      const toAccount = await accountRepo.findById(toAccountId, req.userId!);
+      if (!toAccount) throw new NotFoundError('Destination account not found');
+    }
+
     const entry = await entryRepo.create({
       userId: req.userId!,
-      categoryId,
+      categoryId: categoryId || null,
+      accountId,
+      toAccountId: toAccountId || null,
       type,
       amount,
       description,
@@ -55,6 +73,8 @@ export const entriesController = {
       id: entry.id,
       type: entry.type,
       categoryId: entry.category_id,
+      accountId: entry.account_id,
+      toAccountId: entry.to_account_id,
       amount: parseFloat(entry.amount),
       description: entry.description,
       entryDate: entry.entry_date,
@@ -70,6 +90,8 @@ export const entriesController = {
       id: entry.id,
       type: entry.type,
       categoryId: entry.category_id,
+      accountId: entry.account_id,
+      toAccountId: entry.to_account_id,
       amount: parseFloat(entry.amount),
       description: entry.description,
       entryDate: entry.entry_date,
@@ -88,8 +110,10 @@ export const entriesController = {
       id: e.id,
       type: e.type,
       categoryId: e.category_id,
-      categoryName: e.category_name,
-      categoryColor: e.category_color,
+      categoryName: e.category_name || null,
+      categoryColor: e.category_color || null,
+      accountId: e.account_id,
+      accountName: e.account_name,
       amount: parseFloat(e.amount),
       description: e.description,
       recurrence: e.recurrence,
@@ -105,6 +129,7 @@ export const entriesController = {
       id: entry.id,
       type: entry.type,
       categoryId: entry.category_id,
+      accountId: entry.account_id,
       amount: parseFloat(entry.amount),
       description: entry.description,
       recurrence: entry.recurrence,

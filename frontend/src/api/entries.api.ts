@@ -7,6 +7,7 @@ export const entriesApi = {
     from?: string;
     to?: string;
     categoryId?: string;
+    accountId?: string;
     page?: number;
     limit?: number;
   }): Promise<{ data: MoneyEntry[]; total: number; page: number; limit: number }> {
@@ -16,7 +17,9 @@ export const entriesApi = {
 
   async create(body: {
     type: string;
-    categoryId: string;
+    categoryId?: string | null;
+    accountId: string;
+    toAccountId?: string | null;
     amount: number;
     description: string;
     entryDate: string;
@@ -31,6 +34,7 @@ export const entriesApi = {
 
   async update(id: string, body: {
     categoryId?: string;
+    accountId?: string;
     amount?: number;
     description?: string;
     entryDate?: string;
@@ -50,6 +54,7 @@ export const entriesApi = {
 
   async updateRecurring(id: string, body: {
     categoryId?: string;
+    accountId?: string;
     amount?: number;
     description?: string;
     recurrence?: string;

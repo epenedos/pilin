@@ -6,6 +6,7 @@ export const entryRepo = {
     from?: string;
     to?: string;
     categoryId?: string;
+    accountId?: string;
     page: number;
     limit: number;
   }) {
@@ -17,6 +18,7 @@ export const entryRepo = {
     if (filters.from) { conditions.push(`me.entry_date >= $${idx++}`); values.push(filters.from); }
     if (filters.to) { conditions.push(`me.entry_date <= $${idx++}`); values.push(filters.to); }
     if (filters.categoryId) { conditions.push(`me.category_id = $${idx++}`); values.push(filters.categoryId); }
+    if (filters.accountId) { conditions.push(`(me.account_id = $${idx} OR me.to_account_id = $${idx++})`); values.push(filters.accountId); }
 
     const where = conditions.join(' AND ');
     const offset = (filters.page - 1) * filters.limit;
@@ -27,9 +29,12 @@ export const entryRepo = {
     );
 
     const { rows } = await pool.query(
-      `SELECT me.*, c.name as category_name, c.color as category_color
+      `SELECT me.*, c.name as category_name, c.color as category_color,
+              a.name as account_name, ta.name as to_account_name
        FROM money_entries me
-       JOIN categories c ON c.id = me.category_id
+       LEFT JOIN categories c ON c.id = me.category_id
+       LEFT JOIN accounts a ON a.id = me.account_id
+       LEFT JOIN accounts ta ON ta.id = me.to_account_id
        WHERE ${where}
        ORDER BY me.entry_date DESC, me.created_at DESC
        LIMIT $${idx++} OFFSET $${idx++}`,
@@ -49,7 +54,9 @@ export const entryRepo = {
 
   async create(data: {
     userId: string;
-    categoryId: string;
+    categoryId: string | null;
+    accountId: string;
+    toAccountId?: string | null;
     type: string;
     amount: number;
     description: string;
@@ -62,12 +69,13 @@ export const entryRepo = {
   }) {
     const { rows } = await pool.query(
       `INSERT INTO money_entries
-       (user_id, category_id, type, amount, description, entry_date,
+       (user_id, category_id, account_id, to_account_id, type, amount, description, entry_date,
         is_recurring, recurrence, recurrence_start, recurrence_end, parent_recurring_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        RETURNING *`,
       [
-        data.userId, data.categoryId, data.type, data.amount, data.description,
+        data.userId, data.categoryId || null, data.accountId, data.toAccountId || null,
+        data.type, data.amount, data.description,
         data.entryDate, data.isRecurring, data.recurrence || null,
         data.recurrenceStart || null, data.recurrenceEnd || null,
         data.parentRecurringId || null,
@@ -78,6 +86,7 @@ export const entryRepo = {
 
   async update(id: string, userId: string, data: {
     categoryId?: string;
+    accountId?: string;
     amount?: number;
     description?: string;
     entryDate?: string;
@@ -87,6 +96,7 @@ export const entryRepo = {
     let idx = 3;
 
     if (data.categoryId !== undefined) { fields.push(`category_id = $${idx++}`); values.push(data.categoryId); }
+    if (data.accountId !== undefined) { fields.push(`account_id = $${idx++}`); values.push(data.accountId); }
     if (data.amount !== undefined) { fields.push(`amount = $${idx++}`); values.push(data.amount); }
     if (data.description !== undefined) { fields.push(`description = $${idx++}`); values.push(data.description); }
     if (data.entryDate !== undefined) { fields.push(`entry_date = $${idx++}`); values.push(data.entryDate); }
@@ -129,9 +139,11 @@ export const entryRepo = {
 
   async findRecurringDefinitions(userId: string) {
     const { rows } = await pool.query(
-      `SELECT me.*, c.name as category_name, c.color as category_color
+      `SELECT me.*, c.name as category_name, c.color as category_color,
+              a.name as account_name
        FROM money_entries me
-       JOIN categories c ON c.id = me.category_id
+       LEFT JOIN categories c ON c.id = me.category_id
+       LEFT JOIN accounts a ON a.id = me.account_id
        WHERE me.user_id = $1 AND me.is_recurring = TRUE AND me.parent_recurring_id IS NULL
        ORDER BY me.created_at DESC`,
       [userId]
@@ -141,6 +153,7 @@ export const entryRepo = {
 
   async updateRecurring(id: string, userId: string, data: {
     categoryId?: string;
+    accountId?: string;
     amount?: number;
     description?: string;
     recurrence?: string;
@@ -151,6 +164,7 @@ export const entryRepo = {
     let idx = 3;
 
     if (data.categoryId !== undefined) { fields.push(`category_id = $${idx++}`); values.push(data.categoryId); }
+    if (data.accountId !== undefined) { fields.push(`account_id = $${idx++}`); values.push(data.accountId); }
     if (data.amount !== undefined) { fields.push(`amount = $${idx++}`); values.push(data.amount); }
     if (data.description !== undefined) { fields.push(`description = $${idx++}`); values.push(data.description); }
     if (data.recurrence !== undefined) { fields.push(`recurrence = $${idx++}`); values.push(data.recurrence); }
@@ -255,6 +269,7 @@ export const entryRepo = {
          AND EXTRACT(YEAR FROM me.entry_date) = $2
          AND me.excluded = FALSE
          AND (me.parent_recurring_id IS NOT NULL OR me.is_recurring = FALSE)
+         AND me.type != 'transfer'
        GROUP BY month, me.category_id, c.name, c.color, me.type
        ORDER BY month`,
       [userId, year]
@@ -265,9 +280,13 @@ export const entryRepo = {
   async recentEntries(userId: string, limit: number) {
     const { rows } = await pool.query(
       `SELECT me.id, me.description, me.amount, me.type, me.entry_date,
-              c.name as category_name, c.color as category_color
+              me.account_id, me.to_account_id,
+              c.name as category_name, c.color as category_color,
+              a.name as account_name, ta.name as to_account_name
        FROM money_entries me
-       JOIN categories c ON c.id = me.category_id
+       LEFT JOIN categories c ON c.id = me.category_id
+       LEFT JOIN accounts a ON a.id = me.account_id
+       LEFT JOIN accounts ta ON ta.id = me.to_account_id
        WHERE me.user_id = $1
          AND me.excluded = FALSE
          AND (me.parent_recurring_id IS NOT NULL OR me.is_recurring = FALSE)
@@ -280,9 +299,10 @@ export const entryRepo = {
 
   async activeRecurringDefinitions(userId: string) {
     const { rows } = await pool.query(
-      `SELECT me.*, c.name as category_name
+      `SELECT me.*, c.name as category_name, a.name as account_name
        FROM money_entries me
-       JOIN categories c ON c.id = me.category_id
+       LEFT JOIN categories c ON c.id = me.category_id
+       LEFT JOIN accounts a ON a.id = me.account_id
        WHERE me.user_id = $1 AND me.is_recurring = TRUE AND me.parent_recurring_id IS NULL
          AND (me.recurrence_end IS NULL OR me.recurrence_end > CURRENT_DATE)
        ORDER BY me.type, me.amount DESC`,

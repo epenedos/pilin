@@ -7,11 +7,13 @@ import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ExpensesPage } from './pages/ExpensesPage';
 import { IncomePage } from './pages/IncomePage';
+import { TransfersPage } from './pages/TransfersPage';
 import { RecurringPage } from './pages/RecurringPage';
 import { BudgetsPage } from './pages/BudgetsPage';
 import { SankeyPage } from './pages/SankeyPage';
 import { ForecastPage } from './pages/ForecastPage';
 import { CategoriesPage } from './pages/CategoriesPage';
+import { AccountsPage } from './pages/AccountsPage';
 
 export default function App() {
   return (
@@ -28,8 +30,10 @@ export default function App() {
             }
           >
             <Route path="/" element={<DashboardPage />} />
+            <Route path="/accounts" element={<AccountsPage />} />
             <Route path="/expenses" element={<ExpensesPage />} />
             <Route path="/income" element={<IncomePage />} />
+            <Route path="/transfers" element={<TransfersPage />} />
             <Route path="/recurring" element={<RecurringPage />} />
             <Route path="/budgets" element={<BudgetsPage />} />
             <Route path="/sankey" element={<SankeyPage />} />
