@@ -13,15 +13,30 @@ export interface Category {
   sortOrder: number;
 }
 
-export type EntryType = 'income' | 'expense';
+export interface Account {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AccountWithBalance extends Account {
+  balance: number;
+}
+
+export type EntryType = 'income' | 'expense' | 'transfer';
 export type RecurrenceInterval = 'weekly' | 'biweekly' | 'monthly' | 'yearly';
 
 export interface MoneyEntry {
   id: string;
   type: EntryType;
-  categoryId: string;
-  categoryName: string;
-  categoryColor: string;
+  categoryId: string | null;
+  categoryName: string | null;
+  categoryColor: string | null;
+  accountId: string;
+  accountName: string;
+  toAccountId: string | null;
+  toAccountName: string | null;
   amount: number;
   description: string;
   entryDate: string;
@@ -33,9 +48,11 @@ export interface MoneyEntry {
 export interface RecurringEntry {
   id: string;
   type: EntryType;
-  categoryId: string;
-  categoryName: string;
-  categoryColor: string;
+  categoryId: string | null;
+  categoryName: string | null;
+  categoryColor: string | null;
+  accountId: string;
+  accountName: string;
   amount: number;
   description: string;
   recurrence: RecurrenceInterval;
@@ -58,6 +75,11 @@ export interface DashboardSummary {
   monthIncome: number;
   monthExpenses: number;
   monthNet: number;
+  accountBalances: {
+    id: string;
+    name: string;
+    balance: number;
+  }[];
   budgetStatus: {
     categoryId: string;
     name: string;
@@ -79,8 +101,10 @@ export interface DashboardSummary {
     amount: number;
     type: EntryType;
     entryDate: string;
-    categoryName: string;
-    categoryColor: string;
+    categoryName: string | null;
+    categoryColor: string | null;
+    accountName: string;
+    toAccountName: string | null;
   }[];
 }
 

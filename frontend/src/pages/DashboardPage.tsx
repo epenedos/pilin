@@ -45,6 +45,23 @@ export function DashboardPage() {
         </div>
       </div>
 
+      {/* Account Balances */}
+      {data.accountBalances.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold mb-3">Account Balances</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {data.accountBalances.map((a) => (
+              <div key={a.id} className="bg-white rounded-xl shadow p-5">
+                <p className="text-sm text-gray-500">{a.name}</p>
+                <p className={`text-xl font-bold mt-1 ${a.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {formatCurrency(a.balance)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Budget Status */}
         <div className="bg-white rounded-xl shadow p-6">
@@ -113,6 +130,7 @@ export function DashboardPage() {
                   <th className="pb-2">Date</th>
                   <th className="pb-2">Description</th>
                   <th className="pb-2">Category</th>
+                  <th className="pb-2">Account</th>
                   <th className="pb-2 text-right">Amount</th>
                 </tr>
               </thead>
@@ -122,13 +140,24 @@ export function DashboardPage() {
                     <td className="py-2 text-gray-500">{e.entryDate}</td>
                     <td className="py-2">{e.description}</td>
                     <td className="py-2">
-                      <span className="flex items-center gap-1">
-                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: e.categoryColor }} />
-                        {e.categoryName}
-                      </span>
+                      {e.type === 'transfer' ? (
+                        <span className="text-gray-400">Transfer</span>
+                      ) : (
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: e.categoryColor || '#ccc' }} />
+                          {e.categoryName}
+                        </span>
+                      )}
                     </td>
-                    <td className={`py-2 text-right font-medium ${e.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                      {e.type === 'income' ? '+' : '-'}{formatCurrency(e.amount)}
+                    <td className="py-2 text-gray-500">
+                      {e.type === 'transfer'
+                        ? `${e.accountName} → ${e.toAccountName}`
+                        : e.accountName}
+                    </td>
+                    <td className={`py-2 text-right font-medium ${
+                      e.type === 'income' ? 'text-green-600' : e.type === 'expense' ? 'text-red-600' : 'text-blue-600'
+                    }`}>
+                      {e.type === 'income' ? '+' : e.type === 'expense' ? '-' : ''}{formatCurrency(e.amount)}
                     </td>
                   </tr>
                 ))}

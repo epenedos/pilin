@@ -1,11 +1,14 @@
 import { useState, FormEvent } from 'react';
-import { Category, EntryType } from '../../types';
+import { Category, EntryType, Account } from '../../types';
 
 interface Props {
   type: EntryType;
   categories: Category[];
+  accounts: Account[];
   onSubmit: (data: {
-    categoryId: string;
+    categoryId?: string | null;
+    accountId: string;
+    toAccountId?: string | null;
     amount: number;
     description: string;
     entryDate: string;
@@ -17,9 +20,11 @@ interface Props {
   onCancel: () => void;
 }
 
-export function EntryForm({ type, categories, onSubmit, onCancel }: Props) {
-  const filtered = categories.filter((c) => c.isIncome === (type === 'income'));
+export function EntryForm({ type, categories, accounts, onSubmit, onCancel }: Props) {
+  const filtered = type !== 'transfer' ? categories.filter((c) => c.isIncome === (type === 'income')) : [];
   const [categoryId, setCategoryId] = useState(filtered[0]?.id || '');
+  const [accountId, setAccountId] = useState(accounts[0]?.id || '');
+  const [toAccountId, setToAccountId] = useState(accounts[1]?.id || accounts[0]?.id || '');
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [entryDate, setEntryDate] = useState(new Date().toISOString().split('T')[0]);
@@ -33,12 +38,14 @@ export function EntryForm({ type, categories, onSubmit, onCancel }: Props) {
     setSubmitting(true);
     try {
       await onSubmit({
-        categoryId,
+        categoryId: type === 'transfer' ? null : categoryId,
+        accountId,
+        toAccountId: type === 'transfer' ? toAccountId : null,
         amount: parseFloat(amount),
         description,
         entryDate,
-        isRecurring,
-        ...(isRecurring && {
+        isRecurring: type === 'transfer' ? false : isRecurring,
+        ...(isRecurring && type !== 'transfer' && {
           recurrence,
           recurrenceStart: entryDate,
           recurrenceEnd: recurrenceEnd || null,
@@ -52,17 +59,50 @@ export function EntryForm({ type, categories, onSubmit, onCancel }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          {type === 'transfer' ? 'From Account' : 'Account'}
+        </label>
         <select
-          value={categoryId}
-          onChange={(e) => setCategoryId(e.target.value)}
+          value={accountId}
+          onChange={(e) => setAccountId(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
-          {filtered.map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
+          {accounts.map((a) => (
+            <option key={a.id} value={a.id}>{a.name}</option>
           ))}
         </select>
       </div>
+
+      {type === 'transfer' && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">To Account</label>
+          <select
+            value={toAccountId}
+            onChange={(e) => setToAccountId(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            {accounts.filter((a) => a.id !== accountId).map((a) => (
+              <option key={a.id} value={a.id}>{a.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {type !== 'transfer' && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+          <select
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            {filtered.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
         <input
@@ -95,40 +135,44 @@ export function EntryForm({ type, categories, onSubmit, onCancel }: Props) {
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
       </div>
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          id="recurring"
-          checked={isRecurring}
-          onChange={(e) => setIsRecurring(e.target.checked)}
-          className="rounded text-indigo-600"
-        />
-        <label htmlFor="recurring" className="text-sm text-gray-700">Recurring</label>
-      </div>
-      {isRecurring && (
+      {type !== 'transfer' && (
         <>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Frequency</label>
-            <select
-              value={recurrence}
-              onChange={(e) => setRecurrence(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="weekly">Weekly</option>
-              <option value="biweekly">Biweekly</option>
-              <option value="monthly">Monthly</option>
-              <option value="yearly">Yearly</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">End date (optional)</label>
+          <div className="flex items-center gap-2">
             <input
-              type="date"
-              value={recurrenceEnd}
-              onChange={(e) => setRecurrenceEnd(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              type="checkbox"
+              id="recurring"
+              checked={isRecurring}
+              onChange={(e) => setIsRecurring(e.target.checked)}
+              className="rounded text-indigo-600"
             />
+            <label htmlFor="recurring" className="text-sm text-gray-700">Recurring</label>
           </div>
+          {isRecurring && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Frequency</label>
+                <select
+                  value={recurrence}
+                  onChange={(e) => setRecurrence(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="weekly">Weekly</option>
+                  <option value="biweekly">Biweekly</option>
+                  <option value="monthly">Monthly</option>
+                  <option value="yearly">Yearly</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">End date (optional)</label>
+                <input
+                  type="date"
+                  value={recurrenceEnd}
+                  onChange={(e) => setRecurrenceEnd(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+            </>
+          )}
         </>
       )}
       <div className="flex gap-3 pt-2">

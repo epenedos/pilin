@@ -22,13 +22,23 @@ export interface Category {
   created_at: Date;
 }
 
-export type EntryType = 'income' | 'expense';
+export type EntryType = 'income' | 'expense' | 'transfer';
 export type RecurrenceInterval = 'weekly' | 'biweekly' | 'monthly' | 'yearly';
+
+export interface Account {
+  id: string;
+  user_id: string;
+  name: string;
+  created_at: Date;
+  updated_at: Date;
+}
 
 export interface MoneyEntry {
   id: string;
   user_id: string;
-  category_id: string;
+  category_id: string | null;
+  account_id: string;
+  to_account_id: string | null;
   type: EntryType;
   amount: string; // NUMERIC comes as string from pg
   description: string;

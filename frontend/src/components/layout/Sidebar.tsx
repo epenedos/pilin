@@ -3,8 +3,10 @@ import { useAuth } from '../../auth/AuthContext';
 
 const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', icon: '📊' },
+  { to: '/accounts', label: 'Accounts', icon: '🏦' },
   { to: '/expenses', label: 'Expenses', icon: '💸' },
   { to: '/income', label: 'Income', icon: '💰' },
+  { to: '/transfers', label: 'Transfers', icon: '🔀' },
   { to: '/recurring', label: 'Recurring', icon: '🔄' },
   { to: '/budgets', label: 'Budgets', icon: '📋' },
   { to: '/sankey', label: 'Sankey', icon: '📈' },

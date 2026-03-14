@@ -5,6 +5,7 @@ import { env } from '../config/env';
 import { userRepo } from '../repositories/user.repository';
 import { tokenRepo } from '../repositories/token.repository';
 import { categoryRepo } from '../repositories/category.repository';
+import { accountRepo } from '../repositories/account.repository';
 import { ConflictError, UnauthorizedError } from '../utils/errors';
 
 const DEFAULT_EXPENSE_CATEGORIES = [
@@ -54,6 +55,9 @@ export const authService = {
     for (const cat of DEFAULT_INCOME_CATEGORIES) {
       await categoryRepo.create(user.id, cat.name, cat.color, cat.icon, true);
     }
+
+    // Seed default account
+    await accountRepo.create(user.id, 'Main Account');
 
     const accessToken = generateAccessToken(user.id, user.email);
     const refreshToken = generateRefreshToken();

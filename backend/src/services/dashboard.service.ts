@@ -1,5 +1,6 @@
 import { entryRepo } from '../repositories/entry.repository';
 import { budgetRepo } from '../repositories/budget.repository';
+import { accountRepo } from '../repositories/account.repository';
 import { getNextOccurrence } from '../utils/recurrence';
 import { entriesService } from './entries.service';
 import { RecurrenceInterval } from '../types';
@@ -28,11 +29,12 @@ export const dashboardService = {
     await entriesService.generateRecurringEntries(userId, ms, me);
 
     const todayStr = today();
-    const [totalIncome, totalExpenses, monthIncome, monthExpenses] = await Promise.all([
+    const [totalIncome, totalExpenses, monthIncome, monthExpenses, accountBalances] = await Promise.all([
       entryRepo.sumByTypeUpToDate(userId, 'income', todayStr),
       entryRepo.sumByTypeUpToDate(userId, 'expense', todayStr),
       entryRepo.sumByTypeAndDateRange(userId, 'income', ms, me),
       entryRepo.sumByTypeAndDateRange(userId, 'expense', ms, me),
+      accountRepo.getBalances(userId),
     ]);
 
     const currentBalance = totalIncome - totalExpenses;
@@ -76,6 +78,11 @@ export const dashboardService = {
       monthIncome,
       monthExpenses,
       monthNet: monthIncome - monthExpenses,
+      accountBalances: accountBalances.map((a: any) => ({
+        id: a.id,
+        name: a.name,
+        balance: parseFloat(a.balance),
+      })),
       budgetStatus,
       upcomingRecurring,
       recentEntries: recentEntries.map((e: any) => ({
@@ -84,8 +91,10 @@ export const dashboardService = {
         amount: parseFloat(e.amount),
         type: e.type,
         entryDate: e.entry_date,
-        categoryName: e.category_name,
-        categoryColor: e.category_color,
+        categoryName: e.category_name || null,
+        categoryColor: e.category_color || null,
+        accountName: e.account_name,
+        toAccountName: e.to_account_name || null,
       })),
     };
   },

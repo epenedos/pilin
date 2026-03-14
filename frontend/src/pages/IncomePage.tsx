@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { entriesApi } from '../api/entries.api';
 import { categoriesApi } from '../api/categories.api';
-import { MoneyEntry, Category } from '../types';
+import { accountsApi } from '../api/accounts.api';
+import { MoneyEntry, Category, Account } from '../types';
 import { EntryForm } from '../components/entries/EntryForm';
 import { Modal } from '../components/ui/Modal';
 
@@ -24,19 +25,22 @@ export function IncomePage() {
   });
   const [entries, setEntries] = useState<MoneyEntry[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [total, setTotal] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     const { from, to } = getMonthRange(month + '-01');
-    const [result, cats] = await Promise.all([
+    const [result, cats, accts] = await Promise.all([
       entriesApi.list({ type: 'income', from, to, limit: 100 }),
       categoriesApi.list(),
+      accountsApi.list(),
     ]);
     setEntries(result.data);
     setTotal(result.total);
     setCategories(cats);
+    setAccounts(accts);
     setLoading(false);
   }, [month]);
 
@@ -74,7 +78,7 @@ export function IncomePage() {
       </div>
 
       <Modal open={showForm} onClose={() => setShowForm(false)} title="Add Income">
-        <EntryForm type="income" categories={categories} onSubmit={handleCreate} onCancel={() => setShowForm(false)} />
+        <EntryForm type="income" categories={categories} accounts={accounts} onSubmit={handleCreate} onCancel={() => setShowForm(false)} />
       </Modal>
 
       {loading ? (
@@ -89,6 +93,7 @@ export function IncomePage() {
                 <th className="px-4 py-3">Date</th>
                 <th className="px-4 py-3">Description</th>
                 <th className="px-4 py-3">Category</th>
+                <th className="px-4 py-3">Account</th>
                 <th className="px-4 py-3 text-right">Amount</th>
                 <th className="px-4 py-3 w-16"></th>
               </tr>
@@ -100,10 +105,11 @@ export function IncomePage() {
                   <td className="px-4 py-3">{e.description}</td>
                   <td className="px-4 py-3">
                     <span className="flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: e.categoryColor }} />
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: e.categoryColor || '#ccc' }} />
                       {e.categoryName}
                     </span>
                   </td>
+                  <td className="px-4 py-3 text-gray-500">{e.accountName}</td>
                   <td className="px-4 py-3 text-right font-medium text-green-600">+{formatCurrency(e.amount)}</td>
                   <td className="px-4 py-3">
                     <button

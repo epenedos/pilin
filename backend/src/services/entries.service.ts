@@ -20,6 +20,7 @@ export const entriesService = {
           await entryRepo.create({
             userId,
             categoryId: def.category_id,
+            accountId: def.account_id,
             type: def.type,
             amount: parseFloat(def.amount),
             description: def.description,
@@ -37,6 +38,7 @@ export const entriesService = {
     from?: string;
     to?: string;
     categoryId?: string;
+    accountId?: string;
     page: number;
     limit: number;
   }) {

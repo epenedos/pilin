@@ -58,7 +58,7 @@ export const forecastService = {
         for (const _occ of occurrences) {
           const amount = parseFloat(def.amount);
           if (def.type === 'income') weekIncome += amount;
-          else weekExpense += amount;
+          else if (def.type === 'expense') weekExpense += amount;
         }
       }
 
@@ -68,7 +68,7 @@ export const forecastService = {
         if (entryDate >= cursor && entryDate <= weekEnd) {
           const amount = parseFloat(entry.amount);
           if (entry.type === 'income') weekIncome += amount;
-          else weekExpense += amount;
+          else if (entry.type === 'expense') weekExpense += amount;
         }
       }
 

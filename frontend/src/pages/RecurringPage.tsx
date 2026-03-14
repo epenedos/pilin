@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { entriesApi } from '../api/entries.api';
 import { categoriesApi } from '../api/categories.api';
-import { RecurringEntry, Category } from '../types';
+import { accountsApi } from '../api/accounts.api';
+import { RecurringEntry, Category, Account } from '../types';
 import { EntryForm } from '../components/entries/EntryForm';
 import { Modal } from '../components/ui/Modal';
 
@@ -12,16 +13,19 @@ function formatCurrency(n: number) {
 export function RecurringPage() {
   const [entries, setEntries] = useState<RecurringEntry[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [showForm, setShowForm] = useState<'income' | 'expense' | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
-    const [data, cats] = await Promise.all([
+    const [data, cats, accts] = await Promise.all([
       entriesApi.listRecurring(),
       categoriesApi.list(),
+      accountsApi.list(),
     ]);
     setEntries(data);
     setCategories(cats);
+    setAccounts(accts);
     setLoading(false);
   };
 
@@ -63,7 +67,7 @@ export function RecurringPage() {
 
       {showForm && (
         <Modal open={true} onClose={() => setShowForm(null)} title={`Add Recurring ${showForm === 'income' ? 'Income' : 'Expense'}`}>
-          <EntryForm type={showForm} categories={categories} onSubmit={handleCreate} onCancel={() => setShowForm(null)} />
+          <EntryForm type={showForm} categories={categories} accounts={accounts} onSubmit={handleCreate} onCancel={() => setShowForm(null)} />
         </Modal>
       )}
 
@@ -83,11 +87,12 @@ export function RecurringPage() {
                       <p className="font-medium">{e.description}</p>
                       <p className="text-sm text-gray-500">
                         <span className="inline-flex items-center gap-1">
-                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: e.categoryColor }} />
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: e.categoryColor || '#ccc' }} />
                           {e.categoryName}
                         </span>
                         {' '}&middot; {e.recurrence}
                         {e.recurrenceEnd && ` until ${e.recurrenceEnd}`}
+                        {' '}&middot; {e.accountName}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
@@ -112,10 +117,11 @@ export function RecurringPage() {
                       <p className="font-medium">{e.description}</p>
                       <p className="text-sm text-gray-500">
                         <span className="inline-flex items-center gap-1">
-                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: e.categoryColor }} />
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: e.categoryColor || '#ccc' }} />
                           {e.categoryName}
                         </span>
                         {' '}&middot; {e.recurrence}
+                        {' '}&middot; {e.accountName}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">

@@ -10,6 +10,7 @@ import budgetRoutes from './routes/budgets.routes';
 import dashboardRoutes from './routes/dashboard.routes';
 import chartRoutes from './routes/charts.routes';
 import forecastRoutes from './routes/forecast.routes';
+import accountRoutes from './routes/accounts.routes';
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use('/api/budgets', budgetRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/charts', chartRoutes);
 app.use('/api/forecast', forecastRoutes);
+app.use('/api/accounts', accountRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });
