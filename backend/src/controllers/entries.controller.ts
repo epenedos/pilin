@@ -35,7 +35,7 @@ export const entriesController = {
         convertedAmount: e.converted_amount ? parseFloat(e.converted_amount) : null,
         exchangeRate: e.exchange_rate ? parseFloat(e.exchange_rate) : null,
         description: e.description,
-        entryDate: e.entry_date,
+        entryDate: e.entry_date instanceof Date ? e.entry_date.toISOString().split('T')[0] : String(e.entry_date).split('T')[0],
         isRecurring: e.is_recurring,
         parentRecurringId: e.parent_recurring_id,
         createdAt: e.created_at,
@@ -100,7 +100,7 @@ export const entriesController = {
       convertedAmount: entry.converted_amount ? parseFloat(entry.converted_amount) : null,
       exchangeRate: entry.exchange_rate ? parseFloat(entry.exchange_rate) : null,
       description: entry.description,
-      entryDate: entry.entry_date,
+      entryDate: entry.entry_date instanceof Date ? entry.entry_date.toISOString().split('T')[0] : String(entry.entry_date).split('T')[0],
       isRecurring: entry.is_recurring,
       recurrence: entry.recurrence,
     });
@@ -154,7 +154,7 @@ export const entriesController = {
       convertedAmount: entry.converted_amount ? parseFloat(entry.converted_amount) : null,
       exchangeRate: entry.exchange_rate ? parseFloat(entry.exchange_rate) : null,
       description: entry.description,
-      entryDate: entry.entry_date,
+      entryDate: entry.entry_date instanceof Date ? entry.entry_date.toISOString().split('T')[0] : String(entry.entry_date).split('T')[0],
     });
   },
 
