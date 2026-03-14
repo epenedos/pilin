@@ -180,16 +180,17 @@ Create profile page with password change and currency settings.
 
 ---
 
-### [ ] Step: Account Forms Currency Support (Frontend)
+### [x] Step: Account Forms Currency Support (Frontend)
+<!-- chat-id: b634dc91-698d-4b84-8f00-8acda499ba6b -->
 
 Add currency selection to account create/edit forms.
 
-- [ ] Update `frontend/src/pages/AccountsPage.tsx`:
+- [x] Update `frontend/src/pages/AccountsPage.tsx`:
   - Add CurrencySelector to create account modal
   - Add CurrencySelector to edit account modal
   - Display account currency in the accounts list
-- [ ] Update `frontend/src/api/accounts.api.ts` if needed for currency field
-- [ ] Verify frontend builds: `cd frontend && npm run build`
+- [x] Update `frontend/src/api/accounts.api.ts` if needed for currency field
+- [x] Verify frontend builds: `cd frontend && npm run build`
 
 ---
 
