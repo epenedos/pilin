@@ -3,6 +3,7 @@ import { budgetsApi } from '../api/budgets.api';
 import { categoriesApi } from '../api/categories.api';
 import { Budget, Category } from '../types';
 import { Modal } from '../components/ui/Modal';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 
 function formatCurrency(n: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
@@ -19,6 +20,7 @@ export function BudgetsPage() {
   const [newCatId, setNewCatId] = useState('');
   const [newAmount, setNewAmount] = useState('');
   const [loading, setLoading] = useState(true);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const monthDate = month + '-01';
 
@@ -41,8 +43,10 @@ export function BudgetsPage() {
     load();
   };
 
-  const handleDelete = async (id: string) => {
-    await budgetsApi.remove(id);
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    await budgetsApi.remove(deleteId);
+    setDeleteId(null);
     load();
   };
 
@@ -73,6 +77,14 @@ export function BudgetsPage() {
           </button>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={deleteId !== null}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteId(null)}
+        title="Delete Budget"
+        message="Are you sure you want to delete this budget? This action cannot be undone."
+      />
 
       <Modal open={showForm} onClose={() => setShowForm(false)} title="Add Budget">
         <div className="space-y-4">
@@ -131,7 +143,7 @@ export function BudgetsPage() {
                     <span className="w-3 h-3 rounded-full" style={{ backgroundColor: b.categoryColor }} />
                     <span className="font-medium">{b.categoryName}</span>
                   </div>
-                  <button onClick={() => handleDelete(b.id)} className="text-gray-400 hover:text-red-600 text-sm">
+                  <button onClick={() => setDeleteId(b.id)} className="text-gray-400 hover:text-red-600 text-sm">
                     &times;
                   </button>
                 </div>

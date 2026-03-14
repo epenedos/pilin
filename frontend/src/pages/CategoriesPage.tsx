@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { categoriesApi } from '../api/categories.api';
 import { Category } from '../types';
 import { Modal } from '../components/ui/Modal';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 
 export function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -10,6 +11,7 @@ export function CategoriesPage() {
   const [newName, setNewName] = useState('');
   const [newColor, setNewColor] = useState('#6366F1');
   const [newIsIncome, setNewIsIncome] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const load = async () => {
     const data = await categoriesApi.list();
@@ -26,11 +28,14 @@ export function CategoriesPage() {
     load();
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async () => {
+    if (!deleteId) return;
     try {
-      await categoriesApi.remove(id);
+      await categoriesApi.remove(deleteId);
+      setDeleteId(null);
       load();
     } catch (err: any) {
+      setDeleteId(null);
       alert(err.response?.data?.error || 'Cannot delete category (has entries)');
     }
   };
@@ -46,6 +51,14 @@ export function CategoriesPage() {
           + Add Category
         </button>
       </div>
+
+      <ConfirmDialog
+        open={deleteId !== null}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteId(null)}
+        title="Delete Category"
+        message="Are you sure you want to delete this category? This action cannot be undone."
+      />
 
       <Modal open={showForm} onClose={() => setShowForm(false)} title="Add Category">
         <div className="space-y-4">
@@ -97,7 +110,7 @@ export function CategoriesPage() {
                     <span className="w-4 h-4 rounded-full" style={{ backgroundColor: c.color }} />
                     <span className="font-medium">{c.name}</span>
                   </div>
-                  <button onClick={() => handleDelete(c.id)} className="text-gray-400 hover:text-red-600 text-sm">Delete</button>
+                  <button onClick={() => setDeleteId(c.id)} className="text-gray-400 hover:text-red-600 text-sm">Delete</button>
                 </div>
               ))}
             </div>
@@ -111,7 +124,7 @@ export function CategoriesPage() {
                     <span className="w-4 h-4 rounded-full" style={{ backgroundColor: c.color }} />
                     <span className="font-medium">{c.name}</span>
                   </div>
-                  <button onClick={() => handleDelete(c.id)} className="text-gray-400 hover:text-red-600 text-sm">Delete</button>
+                  <button onClick={() => setDeleteId(c.id)} className="text-gray-400 hover:text-red-600 text-sm">Delete</button>
                 </div>
               ))}
             </div>

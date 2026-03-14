@@ -4,6 +4,7 @@ import { accountsApi } from '../api/accounts.api';
 import { MoneyEntry, Account } from '../types';
 import { EntryForm } from '../components/entries/EntryForm';
 import { Modal } from '../components/ui/Modal';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 
 function formatCurrency(n: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
@@ -27,6 +28,7 @@ export function TransfersPage() {
   const [total, setTotal] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const { from, to } = getMonthRange(month + '-01');
@@ -48,8 +50,10 @@ export function TransfersPage() {
     load();
   };
 
-  const handleDelete = async (id: string) => {
-    await entriesApi.remove(id);
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    await entriesApi.remove(deleteId);
+    setDeleteId(null);
     load();
   };
 
@@ -79,6 +83,14 @@ export function TransfersPage() {
           You need at least 2 accounts to create transfers. Go to the Accounts page to add more.
         </div>
       )}
+
+      <ConfirmDialog
+        open={deleteId !== null}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteId(null)}
+        title="Delete Transfer"
+        message="Are you sure you want to delete this transfer? This action cannot be undone."
+      />
 
       <Modal open={showForm} onClose={() => setShowForm(false)} title="Add Transfer">
         <EntryForm type="transfer" categories={[]} accounts={accounts} onSubmit={handleCreate} onCancel={() => setShowForm(false)} />
@@ -111,7 +123,7 @@ export function TransfersPage() {
                   <td className="px-4 py-3 text-right font-medium text-blue-600">{formatCurrency(e.amount)}</td>
                   <td className="px-4 py-3">
                     <button
-                      onClick={() => handleDelete(e.id)}
+                      onClick={() => setDeleteId(e.id)}
                       className="text-gray-400 hover:text-red-600 text-sm"
                     >
                       Delete
