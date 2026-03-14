@@ -91,7 +91,7 @@ export const dashboardService = {
         description: e.description,
         amount: parseFloat(e.amount),
         type: e.type,
-        entryDate: e.entry_date,
+        entryDate: e.entry_date instanceof Date ? e.entry_date.toISOString().split('T')[0] : String(e.entry_date).split('T')[0],
         categoryName: e.category_name || null,
         categoryColor: e.category_color || null,
         accountName: e.account_name,
