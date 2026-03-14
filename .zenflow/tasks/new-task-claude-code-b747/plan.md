@@ -66,7 +66,8 @@ Add `initial_balance_entry_id` column to accounts table and update backend types
 
 ---
 
-### [ ] Step: Backend API Changes
+### [x] Step: Backend API Changes
+<!-- chat-id: a071a816-0dd5-4254-9ae2-beb90bc60f25 -->
 
 Modify account schemas, repository, and controller to support initial balance.
 
