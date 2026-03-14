@@ -14,6 +14,7 @@ import { SankeyPage } from './pages/SankeyPage';
 import { ForecastPage } from './pages/ForecastPage';
 import { CategoriesPage } from './pages/CategoriesPage';
 import { AccountsPage } from './pages/AccountsPage';
+import { ProfilePage } from './pages/ProfilePage';
 
 export default function App() {
   return (
@@ -39,6 +40,7 @@ export default function App() {
             <Route path="/sankey" element={<SankeyPage />} />
             <Route path="/forecast" element={<ForecastPage />} />
             <Route path="/categories" element={<CategoriesPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Route>
         </Routes>
       </AuthProvider>

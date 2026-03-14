@@ -161,21 +161,22 @@ Create user API client and update auth context for profile data.
 
 ---
 
-### [ ] Step: Profile Page & Currency Selector Component
+### [x] Step: Profile Page & Currency Selector Component
+<!-- chat-id: 6f223ba5-8a20-4b52-964c-616a4f0f75b0 -->
 
 Create profile page with password change and currency settings.
 
-- [ ] Create `frontend/src/components/ui/CurrencySelector.tsx`:
+- [x] Create `frontend/src/components/ui/CurrencySelector.tsx`:
   - Reusable dropdown for currency selection
   - Use SUPPORTED_CURRENCIES from utility
-- [ ] Create `frontend/src/pages/ProfilePage.tsx`:
+- [x] Create `frontend/src/pages/ProfilePage.tsx`:
   - Account Information section (email, display name - read only)
   - Password Change section (current password, new password, confirm)
   - Currency Settings section (default currency dropdown)
   - Follow existing page patterns (layout, styling)
-- [ ] Add route in `frontend/src/App.tsx`: `/profile` → ProfilePage (protected)
-- [ ] Add "Profile" or "Settings" link in `frontend/src/components/layout/Sidebar.tsx`
-- [ ] Verify frontend builds: `cd frontend && npm run build`
+- [x] Add route in `frontend/src/App.tsx`: `/profile` → ProfilePage (protected)
+- [x] Add "Profile" or "Settings" link in `frontend/src/components/layout/Sidebar.tsx`
+- [x] Verify frontend builds: `cd frontend && npm run build`
 
 ---
 
