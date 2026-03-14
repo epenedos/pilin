@@ -87,7 +87,8 @@ Modify account schemas, repository, and controller to support initial balance.
 
 ---
 
-### [ ] Step: Frontend AccountDialog Component
+### [x] Step: Frontend AccountDialog Component
+<!-- chat-id: 9b069a20-2365-410c-ac7b-49d18d82a633 -->
 
 Create the AccountDialog modal component for create/edit operations.
 

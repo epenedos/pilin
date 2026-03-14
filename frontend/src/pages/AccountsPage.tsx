@@ -34,7 +34,7 @@ export function AccountsPage() {
 
   const handleUpdate = async (id: string) => {
     if (!editName.trim()) return;
-    await accountsApi.update(id, { name: editName.trim(), currency: editCurrency });
+    await accountsApi.update(id, { name: editName.trim() });
     setEditingId(null);
     load();
   };
