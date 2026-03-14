@@ -123,17 +123,18 @@ Replace inline forms with dialog-based create/edit flow.
 
 ---
 
-### [ ] Step: Final Integration and Testing
+### [x] Step: Final Integration and Testing
+<!-- chat-id: db695ff8-53ca-4949-b6c1-779d9f8b0c3e -->
 
 End-to-end verification and cleanup.
 
 - Test complete flows:
-  - [ ] Create account without initial balance
-  - [ ] Create account with initial balance → verify income entry created
-  - [ ] Edit account name only
-  - [ ] Edit account initial balance → verify entry updated
-  - [ ] Set initial balance to 0 → verify entry deleted
-  - [ ] Add initial balance to existing account
-  - [ ] Verify currency cannot be changed after creation
+  - [x] Create account without initial balance
+  - [x] Create account with initial balance → verify income entry created
+  - [x] Edit account name only
+  - [x] Edit account initial balance → verify entry updated
+  - [x] Set initial balance to 0 → verify entry deleted
+  - [x] Add initial balance to existing account
+  - [x] Verify currency cannot be changed after creation
 - Run final builds: `cd frontend && npm run build && cd ../backend && npm run build`
 - Write report to `{@artifacts_path}/report.md`
