@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { User } from '../types';
 import { authApi } from '../api/auth.api';
+import { userApi } from '../api/user.api';
 import { setAccessToken } from './tokenManager';
 
 interface AuthState {
@@ -9,6 +10,7 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, displayName: string) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthState>(null!);
@@ -17,13 +19,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const refreshUser = useCallback(async () => {
+    try {
+      const profile = await userApi.getProfile();
+      setUser(profile);
+    } catch {
+      // If profile fetch fails, user state remains unchanged
+    }
+  }, []);
+
   useEffect(() => {
     authApi.refresh()
-      .then(({ accessToken }) => {
+      .then(async ({ accessToken }) => {
         setAccessToken(accessToken);
-        // Decode user from token
-        const payload = JSON.parse(atob(accessToken.split('.')[1]));
-        setUser({ id: payload.sub, email: payload.email, displayName: '', defaultCurrency: 'USD' });
+        // Fetch full user profile instead of just decoding JWT
+        const profile = await userApi.getProfile();
+        setUser(profile);
       })
       .catch(() => {
         setAccessToken(null);
@@ -50,7 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

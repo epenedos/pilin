@@ -144,19 +144,20 @@ Update frontend types and create currency formatting utility.
 
 ---
 
-### [ ] Step: User API Client & Auth Context Update
+### [x] Step: User API Client & Auth Context Update
+<!-- chat-id: d66e17c5-9d8a-4604-a5cc-4057ad8845ef -->
 
 Create user API client and update auth context for profile data.
 
-- [ ] Create `frontend/src/api/user.api.ts`:
+- [x] Create `frontend/src/api/user.api.ts`:
   - `getProfile()` - GET /api/users/me
   - `changePassword(currentPassword, newPassword)` - PUT /api/users/me/password
   - `updateCurrency(currency)` - PUT /api/users/me/currency
-- [ ] Update `frontend/src/auth/AuthContext.tsx`:
+- [x] Update `frontend/src/auth/AuthContext.tsx`:
   - Fetch full user profile on mount (not just decode JWT)
   - Add `refreshUser()` method to re-fetch profile after changes
   - Include `defaultCurrency` in context
-- [ ] Verify frontend builds: `cd frontend && npm run build`
+- [x] Verify frontend builds: `cd frontend && npm run build`
 
 ---
 
