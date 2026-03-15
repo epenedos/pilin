@@ -21,6 +21,14 @@ export const accountRepo = {
     return rows.map(mapAccountRow);
   },
 
+  async findByName(name: string, userId: string) {
+    const { rows } = await pool.query(
+      'SELECT id, user_id, name, currency, initial_balance_entry_id, created_at, updated_at FROM accounts WHERE name = $1 AND user_id = $2',
+      [name, userId]
+    );
+    return rows[0] ? mapAccountRow(rows[0]) : null;
+  },
+
   async findById(id: string, userId: string) {
     const { rows } = await pool.query(
       'SELECT id, user_id, name, currency, initial_balance_entry_id, created_at, updated_at FROM accounts WHERE id = $1 AND user_id = $2',

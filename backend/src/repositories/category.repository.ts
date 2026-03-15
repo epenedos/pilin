@@ -10,6 +10,14 @@ export const categoryRepo = {
     return rows;
   },
 
+  async findByName(name: string, userId: string) {
+    const { rows } = await pool.query(
+      'SELECT * FROM categories WHERE name = $1 AND user_id = $2',
+      [name, userId]
+    );
+    return rows[0] || null;
+  },
+
   async findById(id: string, userId: string) {
     const { rows } = await pool.query(
       'SELECT * FROM categories WHERE id = $1 AND user_id = $2',
